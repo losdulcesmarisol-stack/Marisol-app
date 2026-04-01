@@ -11,7 +11,7 @@ import toast from 'react-hot-toast'
 
 const EMPTY_FORM = { nombre: '', categoria: 'Pan', precio: '', icono: '', unidad: 'unidad' }
 const CATEGORIAS = Object.keys(CAT_EMOJI)
-const UNIDADES = ['unidad', 'kg', 'docena', 'bandeja']
+const UNIDADES = ['unidad', 'kg', 'media docena', 'docena', 'bandeja']
 
 export default function ProductosPage() {
   const { isAdmin } = useAuth()
