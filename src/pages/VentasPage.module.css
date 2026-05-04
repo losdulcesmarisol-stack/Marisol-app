@@ -1,23 +1,39 @@
-/* src/pages/VentasPage.module.css */
 .posWrap { display: grid; grid-template-columns: 1fr 320px; gap: 14px; margin-bottom: 14px; }
-.pgrid { display: grid; grid-template-columns: repeat(auto-fill,minmax(105px,1fr)); gap: 7px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
-.pb { background: var(--sur); border: 1.5px solid var(--bor); border-radius: var(--r); padding: 11px 7px; cursor: pointer; text-align: center; transition: all .2s; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill,minmax(100px,1fr)); gap: 7px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.pb { background: var(--sur); border: 1.5px solid var(--bor); border-radius: var(--r); padding: 11px 7px; cursor: pointer; text-align: center; transition: all .2s; position: relative; }
 .pb:hover, .pb:active { border-color: var(--pur); background: var(--purbg); transform: translateY(-2px); }
+.pbActivo { border-color: var(--pur); background: var(--purbg); }
+.pbBadge { position: absolute; top: -6px; right: -6px; background: var(--pur); color: #fff; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 .pbe { font-size: 24px; margin-bottom: 4px; }
 .pbn { font-size: 11px; font-weight: 600; color: var(--txt); }
 .pbp { font-size: 12px; font-weight: 600; margin-top: 2px; }
 .pbs { font-size: 9px; color: var(--ok); margin-top: 1px; }
 .tck { background: var(--sur); border: 1.5px solid var(--bor2); border-radius: var(--rl); padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--sh); }
+.tckDesktop { display: flex; }
 .tTitle { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--pur); }
 .tSub { font-size: 11px; color: var(--txt3); }
-.tItems { flex: 1; max-height: 210px; overflow-y: auto; }
+.tItems { flex: 1; max-height: 250px; overflow-y: auto; }
 .tRow { display: flex; align-items: center; gap: 5px; padding: 5px 0; border-bottom: 1px solid var(--bor); font-size: 12px; }
 .tName { flex: 1; }
 .tQty { display: flex; align-items: center; gap: 3px; }
-.tQty button { width: 20px; height: 20px; background: var(--sur2); border: 1.5px solid var(--bor); border-radius: 4px; cursor: pointer; font-size: 13px; line-height: 1; transition: all .15s; }
-.tQty button:hover { border-color: var(--pur); }
+.tQty button { width: 22px; height: 22px; background: var(--sur2); border: 1.5px solid var(--bor); border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; }
 .tPrice { font-weight: 600; color: var(--pur); min-width: 54px; text-align: right; }
 .tDel { cursor: pointer; color: var(--txt3); font-size: 14px; padding: 2px; }
-.tDel:hover { color: var(--err); }
-.tTotal { background: var(--pur); color: #fff; border-radius: var(--r); padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
-@media (max-width: 700px) { .posWrap { grid-template-columns: 1fr; } }
+.tTotal { background: var(--pur); color: #fff; border-radius: var(--r); padding: 11px 14px; display: flex; justify-content: space-between; font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
+.ticketTop { display: none; }
+@media (max-width: 700px) {
+  .posWrap { grid-template-columns: 1fr; }
+  .tckDesktop { display: none; }
+  .pgrid { max-height: none; }
+  .ticketTop { display: block; background: var(--sur); border: 1.5px solid var(--bor2); border-radius: var(--rl); padding: 12px; margin-bottom: 12px; box-shadow: var(--sh); }
+  .ticketTopHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--bor); }
+  .ticketTopItems { max-height: 150px; overflow-y: auto; margin-bottom: 8px; }
+  .ticketTopRow { display: flex; align-items: center; gap: 5px; padding: 4px 0; border-bottom: 1px solid var(--bor); font-size: 12px; }
+  .ticketTopIco { font-size: 16px; flex-shrink: 0; }
+  .ticketTopNom { flex: 1; font-size: 11px; }
+  .ticketTopQty { display: flex; align-items: center; gap: 3px; }
+  .ticketTopQty button { width: 20px; height: 20px; background: var(--sur2); border: 1px solid var(--bor); border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .ticketTopPre { font-weight: 600; color: var(--pur); font-size: 11px; min-width: 46px; text-align: right; }
+  .ticketTopDel { cursor: pointer; color: var(--txt3); font-size: 13px; padding: 2px; }
+  .ticketTopBtns { margin-top: 8px; }
+}
