@@ -1,39 +1,36 @@
-.posWrap { display: grid; grid-template-columns: 1fr 320px; gap: 14px; margin-bottom: 14px; }
-.pgrid { display: grid; grid-template-columns: repeat(auto-fill,minmax(100px,1fr)); gap: 7px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
-.pb { background: var(--sur); border: 1.5px solid var(--bor); border-radius: var(--r); padding: 11px 7px; cursor: pointer; text-align: center; transition: all .2s; position: relative; }
-.pb:hover, .pb:active { border-color: var(--pur); background: var(--purbg); transform: translateY(-2px); }
+.posWrap { display: grid; grid-template-columns: 1fr 300px; gap: 14px; margin-bottom: 14px; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); gap: 8px; }
+.pb { background: var(--sur); border: 1.5px solid var(--bor); border-radius: var(--r); padding: 12px 7px; cursor: pointer; text-align: center; transition: all .15s; position: relative; width: 100%; }
+.pb:active { transform: scale(.96); }
 .pbActivo { border-color: var(--pur); background: var(--purbg); }
-.pbBadge { position: absolute; top: -6px; right: -6px; background: var(--pur); color: #fff; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
-.pbe { font-size: 24px; margin-bottom: 4px; }
-.pbn { font-size: 11px; font-weight: 600; color: var(--txt); }
-.pbp { font-size: 12px; font-weight: 600; margin-top: 2px; }
-.pbs { font-size: 9px; color: var(--ok); margin-top: 1px; }
-.tck { background: var(--sur); border: 1.5px solid var(--bor2); border-radius: var(--rl); padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--sh); }
-.tckDesktop { display: flex; }
+.pbSel { border-color: var(--pur); border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--purbg); }
+.pbBadge { position: absolute; top: -7px; right: -7px; background: var(--pur); color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+.pbe { font-size: 26px; margin-bottom: 4px; }
+.pbn { font-size: 11px; font-weight: 600; color: var(--txt); line-height: 1.2; }
+.pbp { font-size: 12px; font-weight: 600; margin-top: 3px; }
+.inline { background: var(--purbg); border: 1.5px solid var(--pur); border-top: none; border-radius: 0 0 var(--r) var(--r); padding: 10px 8px; margin-bottom: 4px; }
+.inlineDisplay { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #fff; border-radius: 8px; padding: 8px 12px; border: 1px solid var(--bor2); }
+.inlineKeys { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin-bottom: 7px; }
+.inlineKey { background: #fff; border: 1px solid var(--bor); border-radius: 8px; padding: 10px; font-size: 18px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; color: var(--txt); transition: all .1s; }
+.inlineKey:active { background: var(--purbg); transform: scale(.94); }
+.inlineKeyC { color: var(--err); background: rgba(181,46,30,.06); }
+.inlineConfirm { width: 100%; background: var(--pur); color: #fff; border: none; border-radius: 8px; padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter',sans-serif; }
+.inlineConfirm:hover { background: var(--purl); }
+.tck { background: var(--sur); border: 1.5px solid var(--bor2); border-radius: var(--rl); padding: 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--sh); position: sticky; top: 70px; max-height: calc(100vh - 90px); }
 .tTitle { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--pur); }
 .tSub { font-size: 11px; color: var(--txt3); }
-.tItems { flex: 1; max-height: 250px; overflow-y: auto; }
-.tRow { display: flex; align-items: center; gap: 5px; padding: 5px 0; border-bottom: 1px solid var(--bor); font-size: 12px; }
+.tItems { flex: 1; overflow-y: auto; }
+.tRow { display: flex; align-items: center; gap: 5px; padding: 6px 0; border-bottom: 1px solid var(--bor); font-size: 12px; }
 .tName { flex: 1; }
-.tQty { display: flex; align-items: center; gap: 3px; }
-.tQty button { width: 22px; height: 22px; background: var(--sur2); border: 1.5px solid var(--bor); border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; }
+.tQty { display: flex; align-items: center; gap: 4px; }
+.tQty button { width: 22px; height: 22px; background: var(--sur2); border: 1px solid var(--bor); border-radius: 4px; cursor: pointer; font-size: 14px; }
 .tPrice { font-weight: 600; color: var(--pur); min-width: 54px; text-align: right; }
 .tDel { cursor: pointer; color: var(--txt3); font-size: 14px; padding: 2px; }
+.tDel:hover { color: var(--err); }
 .tTotal { background: var(--pur); color: #fff; border-radius: var(--r); padding: 11px 14px; display: flex; justify-content: space-between; font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; }
-.ticketTop { display: none; }
 @media (max-width: 700px) {
   .posWrap { grid-template-columns: 1fr; }
-  .tckDesktop { display: none; }
-  .pgrid { max-height: none; }
-  .ticketTop { display: block; background: var(--sur); border: 1.5px solid var(--bor2); border-radius: var(--rl); padding: 12px; margin-bottom: 12px; box-shadow: var(--sh); }
-  .ticketTopHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--bor); }
-  .ticketTopItems { max-height: 150px; overflow-y: auto; margin-bottom: 8px; }
-  .ticketTopRow { display: flex; align-items: center; gap: 5px; padding: 4px 0; border-bottom: 1px solid var(--bor); font-size: 12px; }
-  .ticketTopIco { font-size: 16px; flex-shrink: 0; }
-  .ticketTopNom { flex: 1; font-size: 11px; }
-  .ticketTopQty { display: flex; align-items: center; gap: 3px; }
-  .ticketTopQty button { width: 20px; height: 20px; background: var(--sur2); border: 1px solid var(--bor); border-radius: 4px; cursor: pointer; font-size: 12px; }
-  .ticketTopPre { font-weight: 600; color: var(--pur); font-size: 11px; min-width: 46px; text-align: right; }
-  .ticketTopDel { cursor: pointer; color: var(--txt3); font-size: 13px; padding: 2px; }
-  .ticketTopBtns { margin-top: 8px; }
+  .tck { position: static; max-height: none; order: -1; }
+  .pgrid { grid-template-columns: repeat(3,1fr); }
+  .inlineKey { padding: 12px; font-size: 20px; }
 }
