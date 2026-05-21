@@ -1,4 +1,3 @@
-// src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
@@ -11,14 +10,13 @@ import ComandasPage from './pages/ComandasPage'
 import ProveedoresPage from './pages/ProveedoresPage'
 import ComparadorPage from './pages/ComparadorPage'
 import UsuariosPage from './pages/UsuariosPage'
+import ProduccionPage from './pages/ProduccionPage'
 
-// Protege rutas privadas
 function PrivateRoute({ children }) {
   const { user } = useAuth()
   return user ? children : <Navigate to="/login" replace />
 }
 
-// Protege rutas solo para admin
 function AdminRoute({ children }) {
   const { user, isAdmin } = useAuth()
   if (!user) return <Navigate to="/login" replace />
@@ -38,6 +36,7 @@ export default function App() {
         <Route path="comandas" element={<ComandasPage />} />
         <Route path="proveedores" element={<ProveedoresPage />} />
         <Route path="comparador" element={<ComparadorPage />} />
+        <Route path="produccion" element={<ProduccionPage />} />
         <Route path="usuarios" element={<AdminRoute><UsuariosPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

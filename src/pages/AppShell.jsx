@@ -40,6 +40,7 @@ export default function AppShell() {
     { to: '/clientes', icon: '👥', label: 'Clientes' },
     { to: '/ventas', icon: '💰', label: 'Ventas' },
     { to: '/comandas', icon: '📋', label: 'Comandas', badge: pendientes },
+    { to: '/produccion', icon: '🏭', label: 'Produccion' },
     { to: '/proveedores', icon: '🚚', label: 'Proveedores' },
     ...(isAdmin ? [{ to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
   ]
@@ -81,11 +82,7 @@ export default function AppShell() {
 
       <nav className={styles.bottomNav}>
         {navItems.map(({ to, icon, label, end, badge }) => (
-          <button
-            key={to}
-            className={`${styles.bottomBtn} ${isActive({ to, end }) ? styles.on : ''}`}
-            onClick={() => navigate(to)}
-          >
+          <button key={to} className={`${styles.bottomBtn} ${isActive({ to, end }) ? styles.on : ''}`} onClick={() => navigate(to)}>
             <span className={styles.bottomIcon}>{icon}</span>
             <span className={styles.bottomLabel}>{label}</span>
             {badge > 0 && <span className={styles.bottomBadge}>{badge}</span>}
