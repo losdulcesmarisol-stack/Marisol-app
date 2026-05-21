@@ -56,9 +56,9 @@ export default function ProduccionPage() {
         prodId: p.id,
         nombre: p.nombre,
         icono: p.icono || '🍞',
-        cocido: '',
-        vendido: '',
-        tirado: ''
+        total: '',
+        cocidas: '',
+        mermas: ''
       })))
     }
   }, [productos, registroHoy])
@@ -73,7 +73,7 @@ export default function ProduccionPage() {
     if (prodSeleccionados.find(p => p.prodId === prod.id)) return
     setProdSeleccionados(prev => [...prev, {
       prodId: prod.id, nombre: prod.nombre, icono: prod.icono || '🍞',
-      cocido: '', vendido: '', tirado: ''
+      total: '', cocidas: '', mermas: ''
     }])
   }
 
@@ -122,10 +122,10 @@ export default function ProduccionPage() {
 
       todosDias.forEach(dia => {
         (dia.productos || []).forEach(p => {
-          if (!p.cocido) return
+          if (!p.total) return
           if (!promedios[p.nombre]) promedios[p.nombre] = { similar: [], reciente: [], icono: p.icono }
           const esSimilar = diasSimilares.includes(dia)
-          const n = parseFloat(p.cocido) || 0
+          const n = parseFloat(p.total) || 0
           if (n > 0) {
             if (esSimilar) promedios[p.nombre].similar.push(n)
             else promedios[p.nombre].reciente.push(n)
@@ -166,11 +166,11 @@ export default function ProduccionPage() {
   )
 
   // Calcular estadísticas del día
-  const totalCocido = prodSeleccionados.reduce((s, p) => s + (parseFloat(p.cocido) || 0), 0)
-  const totalVendido = prodSeleccionados.reduce((s, p) => s + (parseFloat(p.vendido) || 0), 0)
-  const totalTirado = prodSeleccionados.reduce((s, p) => s + (parseFloat(p.tirado) || 0), 0)
-  const pctVendido = totalCocido > 0 ? ((totalVendido / totalCocido) * 100).toFixed(0) : 0
-  const pctTirado = totalCocido > 0 ? ((totalTirado / totalCocido) * 100).toFixed(0) : 0
+  const totalTotal = prodSeleccionados.reduce((s, p) => s + (parseFloat(p.total) || 0), 0)
+  const totalCocidas = prodSeleccionados.reduce((s, p) => s + (parseFloat(p.cocidas) || 0), 0)
+  const totalMermas = prodSeleccionados.reduce((s, p) => s + (parseFloat(p.mermas) || 0), 0)
+  const pctCocidas = totalTotal > 0 ? ((totalCocidas / totalTotal) * 100).toFixed(0) : 0
+  const pctMermas = totalTotal > 0 ? ((totalMermas / totalTotal) * 100).toFixed(0) : 0
 
   return (
     <div className="fade-in">
@@ -241,9 +241,9 @@ export default function ProduccionPage() {
                 {/* Cabecera tabla */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 30px', gap: 6, padding: '6px 0', borderBottom: '2px solid var(--bor)', marginBottom: 6 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--txt2)', textTransform: 'uppercase', letterSpacing: 1 }}>Producto</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--inf)', textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>Cocido</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--ok)', textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>Vendido</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--err)', textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>Tirado</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--inf)', textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>Total</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--ok)', textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>Cocidas</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--err)', textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>Mermas</span>
                   <span></span>
                 </div>
 
@@ -253,30 +253,30 @@ export default function ProduccionPage() {
                       <span style={{ fontSize: 18 }}>{p.icono}</span>
                       <span style={{ fontWeight: 500 }}>{p.nombre}</span>
                     </div>
-                    <input type="number" min="0" value={p.cocido} onChange={e => updateProd(p.prodId, 'cocido', e.target.value)}
+                    <input type="number" min="0" value={p.total} onChange={e => updateProd(p.prodId, 'total', e.target.value)}
                       placeholder="0" style={{ textAlign: 'center', padding: '5px', fontSize: 13, borderColor: 'var(--inf)' }} />
-                    <input type="number" min="0" value={p.vendido} onChange={e => updateProd(p.prodId, 'vendido', e.target.value)}
+                    <input type="number" min="0" value={p.cocidas} onChange={e => updateProd(p.prodId, 'cocidas', e.target.value)}
                       placeholder="0" style={{ textAlign: 'center', padding: '5px', fontSize: 13, borderColor: 'var(--ok)' }} />
-                    <input type="number" min="0" value={p.tirado} onChange={e => updateProd(p.prodId, 'tirado', e.target.value)}
+                    <input type="number" min="0" value={p.mermas} onChange={e => updateProd(p.prodId, 'mermas', e.target.value)}
                       placeholder="0" style={{ textAlign: 'center', padding: '5px', fontSize: 13, borderColor: 'var(--err)' }} />
                     <button onClick={() => removeProd(p.prodId)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--txt3)', fontSize: 16 }}>×</button>
                   </div>
                 ))}
 
                 {/* Totales */}
-                {totalCocido > 0 && (
+                {totalTotal > 0 && (
                   <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     <div style={{ background: 'rgba(30,92,160,.08)', border: '1px solid rgba(30,92,160,.2)', borderRadius: 'var(--r)', padding: '9px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--inf)' }}>{totalCocido}</div>
-                      <div style={{ fontSize: 10, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: 1 }}>Total cocido</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--inf)' }}>{totalTotal}</div>
+                      <div style={{ fontSize: 10, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: 1 }}>Total total</div>
                     </div>
                     <div style={{ background: 'rgba(42,122,72,.08)', border: '1px solid rgba(42,122,72,.2)', borderRadius: 'var(--r)', padding: '9px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--ok)' }}>{totalVendido} <span style={{ fontSize: 12 }}>({pctVendido}%)</span></div>
-                      <div style={{ fontSize: 10, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: 1 }}>Vendido</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--ok)' }}>{totalCocidas} <span style={{ fontSize: 12 }}>({pctCocidas}%)</span></div>
+                      <div style={{ fontSize: 10, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: 1 }}>Cocidas</div>
                     </div>
                     <div style={{ background: 'rgba(181,46,30,.06)', border: '1px solid rgba(181,46,30,.15)', borderRadius: 'var(--r)', padding: '9px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--err)' }}>{totalTirado} <span style={{ fontSize: 12 }}>({pctTirado}%)</span></div>
-                      <div style={{ fontSize: 10, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: 1 }}>Tirado</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--err)' }}>{totalMermas} <span style={{ fontSize: 12 }}>({pctMermas}%)</span></div>
+                      <div style={{ fontSize: 10, color: 'var(--txt3)', textTransform: 'uppercase', letterSpacing: 1 }}>Mermas</div>
                     </div>
                   </div>
                 )}
@@ -362,9 +362,9 @@ export default function ProduccionPage() {
               {historial.length === 0 ? (
                 <Empty icon="📋" text="No hay registros todavía. Empieza registrando el día de hoy." />
               ) : historial.map(dia => {
-                const totC = (dia.productos || []).reduce((s, p) => s + (parseFloat(p.cocido) || 0), 0)
-                const totV = (dia.productos || []).reduce((s, p) => s + (parseFloat(p.vendido) || 0), 0)
-                const totT = (dia.productos || []).reduce((s, p) => s + (parseFloat(p.tirado) || 0), 0)
+                const totC = (dia.productos || []).reduce((s, p) => s + (parseFloat(p.total) || 0), 0)
+                const totV = (dia.productos || []).reduce((s, p) => s + (parseFloat(p.cocidas) || 0), 0)
+                const totT = (dia.productos || []).reduce((s, p) => s + (parseFloat(p.mermas) || 0), 0)
                 return (
                   <div key={dia.id} style={{ border: '1px solid var(--bor)', borderRadius: 'var(--r)', padding: '11px 13px', marginBottom: 7 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
@@ -372,9 +372,9 @@ export default function ProduccionPage() {
                       {dia.condicion && <span style={{ background: 'var(--purbg)', color: 'var(--pur)', border: '1px solid var(--bor2)', borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 600 }}>{dia.condicion}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: 12, fontSize: 12, marginBottom: 5 }}>
-                      <span style={{ color: 'var(--inf)' }}>Cocido: <strong>{totC}</strong></span>
-                      <span style={{ color: 'var(--ok)' }}>Vendido: <strong>{totV}</strong></span>
-                      <span style={{ color: 'var(--err)' }}>Tirado: <strong>{totT}</strong></span>
+                      <span style={{ color: 'var(--inf)' }}>Total: <strong>{totC}</strong></span>
+                      <span style={{ color: 'var(--ok)' }}>Cocidas: <strong>{totV}</strong></span>
+                      <span style={{ color: 'var(--err)' }}>Mermas: <strong>{totT}</strong></span>
                       {totC > 0 && <span style={{ color: 'var(--txt3)' }}>Eficiencia: <strong>{Math.round(totV/totC*100)}%</strong></span>}
                     </div>
                     {dia.notas && <div style={{ fontSize: 11, color: 'var(--txt3)', fontStyle: 'italic' }}>📝 {dia.notas}</div>}
