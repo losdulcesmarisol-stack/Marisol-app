@@ -4,11 +4,39 @@ import toast from 'react-hot-toast'
 
 const VISION_KEY = 'AIzaSyA3zpAFy5OPaaZYC0cdI3xY7Xwpu4L5ojQ'
 
+// Redimensiona la imagen antes de enviarla para evitar errores con fotos muy grandes
+function resizeImage(file, maxWidth = 1200) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+        if (width > maxWidth) {
+          height = Math.round(height * maxWidth / width)
+          width = maxWidth
+        }
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+        resolve(base64)
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function LectorFactura({ onDatosExtraidos, onClose }) {
   const [imagen, setImagen] = useState(null)
   const [preview, setPreview] = useState(null)
   const [leyendo, setLeyendo] = useState(false)
   const [resultado, setResultado] = useState(null)
+  const [textoRaw, setTextoRaw] = useState('')
 
   function onFoto(e) {
     const file = e.target.files[0]
@@ -18,19 +46,15 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
     reader.onload = ev => setPreview(ev.target.result)
     reader.readAsDataURL(file)
     setResultado(null)
+    setTextoRaw('')
   }
 
   async function leerFactura() {
     if (!imagen) { toast.error('Selecciona una foto primero'); return }
     setLeyendo(true)
     try {
-      // Convertir imagen a base64
-      const base64 = await new Promise((res, rej) => {
-        const reader = new FileReader()
-        reader.onload = e => res(e.target.result.split(',')[1])
-        reader.onerror = rej
-        reader.readAsDataURL(imagen)
-      })
+      // Redimensionar imagen
+      const base64 = await resizeImage(imagen)
 
       // Llamar a Google Cloud Vision
       const resp = await fetch(
@@ -41,30 +65,44 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
           body: JSON.stringify({
             requests: [{
               image: { content: base64 },
-              features: [{ type: 'TEXT_DETECTION', maxResults: 1 }]
+              features: [
+                { type: 'TEXT_DETECTION', maxResults: 1 },
+                { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }
+              ]
             }]
           })
         }
       )
-      const data = await resp.json()
-      const texto = data.responses?.[0]?.fullTextAnnotation?.text || ''
 
-      if (!texto) {
-        toast.error('No se pudo leer texto en la imagen')
+      const data = await resp.json()
+
+      if (data.error) {
+        toast.error('Error API: ' + data.error.message)
         setLeyendo(false)
         return
       }
 
-      // Extraer datos de la factura con lógica inteligente
-      const lineas = texto.split('\n').map(l => l.trim()).filter(l => l)
+      const texto = data.responses?.[0]?.fullTextAnnotation?.text ||
+                    data.responses?.[0]?.textAnnotations?.[0]?.description || ''
+
+      if (!texto) {
+        toast.error('No se detectó texto. Asegúrate de que la foto esté bien iluminada y enfocada.')
+        setLeyendo(false)
+        return
+      }
+
+      setTextoRaw(texto)
+
+      // Extraer datos inteligentemente
+      const lineas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0)
       const items = []
       let proveedor = ''
       let numeroFactura = ''
       let fecha = ''
 
-      // Detectar proveedor (primera línea con texto largo)
-      for (const l of lineas.slice(0, 5)) {
-        if (l.length > 4 && !/^\d/.test(l) && !l.includes('€') && !l.includes('EUR')) {
+      // Detectar proveedor
+      for (const l of lineas.slice(0, 6)) {
+        if (l.length > 3 && !/^\d/.test(l) && !l.includes('€') && !l.includes('EUR') && !l.match(/factura|albaran|fecha|total|iva/i)) {
           proveedor = l
           break
         }
@@ -72,60 +110,70 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
 
       // Detectar número de factura
       for (const l of lineas) {
-        const mF = l.match(/(?:factura|fra|n[uú]m|n[°º])[:\s.]*([A-Z0-9\-\/]+)/i)
-        if (mF) { numeroFactura = mF[1]; break }
+        const m = l.match(/(?:factura|fra\.?|f\.?|n[uú]m\.?|n[°º]\.?)[:\s#]*([A-Z0-9][A-Z0-9\-\/]{2,})/i)
+        if (m) { numeroFactura = m[1]; break }
       }
 
       // Detectar fecha
       for (const l of lineas) {
-        const mD = l.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/)
-        if (mD) { fecha = mD[0]; break }
+        const m = l.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/)
+        if (m) { fecha = m[0]; break }
       }
 
       // Detectar líneas de producto con precio
-      // Busca patrones: DESCRIPCION ... CANTIDAD ... PRECIO
-      const regexPrecio = /(\d+[.,]\d{2})\s*€?$/
-      const regexCant = /^\s*(\d+(?:[.,]\d+)?)\s+/
-
       for (let i = 0; i < lineas.length; i++) {
         const l = lineas[i]
-        const matchPrecio = l.match(/(\d+[.,]\d{2})\s*[€]?\s*$/)
-        if (!matchPrecio) continue
 
-        const precio = parseFloat(matchPrecio[1].replace(',', '.'))
-        if (precio <= 0 || precio > 9999) continue
+        // Buscar precio al final de la línea
+        const mPrecio = l.match(/(\d{1,4}[.,]\d{2})\s*€?\s*$/)
+        if (!mPrecio) continue
 
-        // Extraer nombre del producto (texto antes del precio)
-        const sinPrecio = l.replace(matchPrecio[0], '').trim()
-        
-        // Extraer cantidad al inicio si existe
-        const matchCant = sinPrecio.match(/^(\d+(?:[.,]\d+)?)\s+(.+)/)
-        let nombre = sinPrecio
+        const precio = parseFloat(mPrecio[1].replace(',', '.'))
+        if (precio <= 0 || precio > 50000) continue
+
+        // Limpiar la línea quitando el precio
+        let resto = l.slice(0, l.lastIndexOf(mPrecio[0])).trim()
+        if (resto.length < 2) continue
+
+        // Buscar cantidad al inicio
+        const mCant = resto.match(/^(\d+(?:[.,]\d+)?)\s+x?\s*(.+)/i) ||
+                      resto.match(/^(.+)\s+x\s*(\d+(?:[.,]\d+)?)/i)
+
+        let nombre = resto
         let cantidad = 1
         let precioUnit = precio
 
-        if (matchCant) {
-          cantidad = parseFloat(matchCant[1].replace(',', '.'))
-          nombre = matchCant[2].trim()
-          if (cantidad > 0 && cantidad < 10000) {
-            precioUnit = precio / cantidad
+        if (mCant) {
+          const posibleCant = parseFloat((mCant[1] || '').replace(',', '.'))
+          if (!isNaN(posibleCant) && posibleCant > 0 && posibleCant < 10000) {
+            cantidad = posibleCant
+            nombre = (mCant[2] || resto).trim()
+            precioUnit = parseFloat((precio / cantidad).toFixed(4))
           }
         }
 
-        if (nombre.length > 2 && nombre.length < 60) {
-          items.push({
-            nombre: nombre.substring(0, 50),
-            cantidad: cantidad,
-            precio_unit: parseFloat(precioUnit.toFixed(2))
-          })
-        }
+        // Filtrar líneas que no son productos
+        if (nombre.match(/total|subtotal|iva|descuento|base|impuesto/i)) continue
+        if (nombre.length < 2 || nombre.length > 80) continue
+
+        items.push({
+          nombre: nombre.substring(0, 60),
+          cantidad: cantidad,
+          precio_unit: parseFloat(precioUnit.toFixed(2))
+        })
       }
 
-      const datosExtraidos = { proveedor, numeroFactura, fecha, items, textoCompleto: texto }
-      setResultado(datosExtraidos)
-      toast.success(`Leída: ${items.length} producto(s) detectado(s)`)
+      setResultado({ proveedor, numeroFactura, fecha, items, textoCompleto: texto })
+
+      if (items.length === 0) {
+        toast.error('No se detectaron productos con precio. Revisa el texto extraído abajo.')
+      } else {
+        toast.success(items.length + ' producto(s) detectado(s)')
+      }
+
     } catch (e) {
-      toast.error('Error al leer la factura: ' + e.message)
+      toast.error('Error: ' + e.message)
+      console.error(e)
     } finally {
       setLeyendo(false)
     }
@@ -137,10 +185,17 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
     onClose()
   }
 
+  // Añadir producto manualmente desde el texto
+  function addManual() {
+    if (!resultado) return
+    onDatosExtraidos({ ...resultado, items: resultado.items })
+    onClose()
+  }
+
   return (
-    <Modal open title="📷 Lector automático de facturas" onClose={onClose} wide>
+    <Modal open title="Lector de facturas con IA" onClose={onClose} wide>
       <div style={{ fontSize: 13, color: 'var(--txt2)', marginBottom: 12, background: 'var(--purbg)', border: '1px solid var(--bor2)', borderRadius: 'var(--r)', padding: '9px 12px' }}>
-        💡 Haz una foto clara a la factura. La IA extraerá automáticamente los productos y precios.
+        💡 Haz una foto clara a la factura con buena luz y sin sombras. Cuanto más nítida mejor.
       </div>
 
       <div style={{ marginBottom: 12 }}>
@@ -152,24 +207,20 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
       </div>
 
       {preview && (
-        <img src={preview} alt="Factura" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 'var(--r)', marginBottom: 12, border: '1px solid var(--bor)' }} />
+        <img src={preview} alt="Factura" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 'var(--r)', marginBottom: 12, border: '1px solid var(--bor)' }} />
       )}
 
       {imagen && !resultado && (
         <Btn fullWidth onClick={leerFactura} disabled={leyendo}>
-          {leyendo ? '🔍 Leyendo factura con IA...' : '🔍 Leer factura automáticamente'}
+          {leyendo ? '🔍 Leyendo factura...' : '🔍 Leer factura automáticamente'}
         </Btn>
       )}
 
       {resultado && (
         <div style={{ marginTop: 12 }}>
-          <div style={{ fontWeight: 600, color: 'var(--pur)', fontSize: 13, marginBottom: 8 }}>
-            ✅ Datos extraídos de la factura
-          </div>
-
           {resultado.proveedor && (
             <div style={{ fontSize: 12, color: 'var(--txt2)', marginBottom: 4 }}>
-              🏭 Proveedor detectado: <strong>{resultado.proveedor}</strong>
+              🏭 Proveedor: <strong>{resultado.proveedor}</strong>
             </div>
           )}
           {resultado.numeroFactura && (
@@ -183,39 +234,54 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
             </div>
           )}
 
-          {resultado.items.length === 0 ? (
-            <div style={{ background: 'rgba(181,46,30,.08)', border: '1px solid rgba(181,46,30,.2)', borderRadius: 'var(--r)', padding: '10px 12px', fontSize: 12, color: 'var(--err)' }}>
-              ⚠️ No se detectaron líneas de producto. Revisa que la foto sea clara y la factura esté bien iluminada.
-            </div>
-          ) : (
+          {resultado.items.length > 0 ? (
             <>
-              <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 6 }}>
-                📦 {resultado.items.length} producto(s) detectado(s):
+              <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--pur)', marginBottom: 6 }}>
+                {resultado.items.length} producto(s) detectado(s):
               </div>
               <div style={{ border: '1px solid var(--bor)', borderRadius: 'var(--r)', overflow: 'hidden', marginBottom: 10 }}>
                 {resultado.items.map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 11px', borderBottom: i < resultado.items.length - 1 ? '1px solid var(--bor)' : 'none', fontSize: 12 }}>
                     <span style={{ flex: 1, fontWeight: 500 }}>{item.nombre}</span>
                     <span style={{ color: 'var(--txt3)', minWidth: 50 }}>{item.cantidad} ud</span>
-                    <span style={{ color: 'var(--pur)', fontWeight: 700, minWidth: 60, textAlign: 'right' }}>
+                    <span style={{ color: 'var(--pur)', fontWeight: 700 }}>
                       {item.precio_unit.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}/ud
                     </span>
                   </div>
                 ))}
               </div>
             </>
+          ) : (
+            <>
+              <div style={{ background: 'rgba(176,106,16,.08)', border: '1px solid rgba(176,106,16,.22)', borderRadius: 'var(--r)', padding: '10px 12px', fontSize: 12, color: 'var(--wrn)', marginBottom: 10 }}>
+                ⚠️ No se detectaron productos automáticamente. Puedes usar el texto extraído para introducirlos manualmente.
+              </div>
+              {textoRaw && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--txt2)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 }}>
+                    Texto extraído de la factura:
+                  </div>
+                  <div style={{ background: 'var(--sur2)', border: '1px solid var(--bor)', borderRadius: 'var(--r)', padding: '10px', fontSize: 11, fontFamily: 'monospace', whiteSpace: 'pre-wrap', maxHeight: 200, overflowY: 'auto', color: 'var(--txt2)' }}>
+                    {textoRaw}
+                  </div>
+                </div>
+              )}
+            </>
           )}
-
-          <div style={{ fontSize: 11, color: 'var(--txt3)', marginBottom: 10 }}>
-            Puedes revisar y editar los datos antes de guardar en la pantalla de factura.
-          </div>
         </div>
       )}
 
       <ModalFooter>
         <Btn variant="ghost" onClick={onClose}>Cancelar</Btn>
-        {resultado && resultado.items.length > 0 && (
-          <Btn onClick={confirmar}>✅ Usar estos datos</Btn>
+        {resultado && (
+          <Btn onClick={confirmar}>
+            {resultado.items.length > 0 ? 'Usar estos datos' : 'Abrir factura vacía'}
+          </Btn>
+        )}
+        {imagen && resultado && (
+          <Btn variant="ghost" onClick={() => { setResultado(null); setTextoRaw('') }}>
+            Volver a intentar
+          </Btn>
         )}
       </ModalFooter>
     </Modal>
