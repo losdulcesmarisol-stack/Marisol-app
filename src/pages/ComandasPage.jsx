@@ -152,7 +152,7 @@ export default function ComandasPage() {
                         <span style={{ fontSize:18 }}>{r.icono}</span>
                         <span style={{ fontWeight:600 }}>{r.nombre}</span>
                         <span style={{ background:'var(--pur)',color:'#fff',borderRadius:6,padding:'2px 8px',fontWeight:700,fontSize:14 }}>{r.qty}</span>
-                        <span style={{ fontSize:11,color:'var(--txt3)' }}>{r.qty >= 12 ? Math.floor(r.qty/12) + ' doc + ' + (r.qty%12) + ' uds' : 'uds'}</span>
+                        <span style={{ fontSize:11,color:'var(--txt3)' }}>{""}</span>
                       </div>
                     ))}
                   </div>
@@ -272,3 +272,4 @@ export default function ComandasPage() {
     </div>
   )
 }
+//cache bust jueves, 28 de mayo de 2026, 18:38:31 CEST
