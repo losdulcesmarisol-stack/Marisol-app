@@ -88,9 +88,9 @@ export default function ProduccionPage() {
 
   function prodsFiltrados() {
     if (filtroCat === 'todos') return prodSeleccionados
-    if (filtroCat === "pan") return prodSeleccionados.filter(p => getEmoji(p.prodId) === "🥖")
-  if (filtroCat === "bol") return prodSeleccionados.filter(p => getEmoji(p.prodId) === "🥐")
-  return prodSeleccionados.filter(p => !["🥖","🥐"].includes(getEmoji(p.prodId)))
+    if (filtroCat === "pan") return prodSeleccionados.filter(p => getCat(p.prodId) === "Pan")
+  if (filtroCat === "bol") return prodSeleccionados.filter(p => ["Bollería","Magdalenas"].includes(getCat(p.prodId)))
+  return prodSeleccionados.filter(p => ["Rosquillas","Especial"].includes(getCat(p.prodId)))
   }
 
   async function guardarHoy() {
