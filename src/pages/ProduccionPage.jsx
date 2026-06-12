@@ -84,12 +84,13 @@ export default function ProduccionPage() {
   const updateProd = (prodId, field, val) =>
     setProdSel(prev => prev.map(p => p.prodId === prodId ? { ...p, [field]: val } : p))
 
-  const getCat = prodId => productos.find(x => x.id === prodId)?.categoria || 'Pan'
+  const getEmoji = prodId => productos.find(x => x.id === prodId)?.icono || ""
 
   function prodsFiltrados() {
     if (filtroCat === 'todos') return prodSeleccionados
-    const cats = filtroCat === 'pan' ? CATS_PAN : filtroCat === 'bol' ? CATS_BOL : CATS_DULCES
-    return prodSeleccionados.filter(p => cats.includes(getCat(p.prodId)))
+    if (filtroCat === "pan") return prodSeleccionados.filter(p => getEmoji(p.prodId) === "🥖")
+  if (filtroCat === "bol") return prodSeleccionados.filter(p => getEmoji(p.prodId) === "🥐")
+  return prodSeleccionados.filter(p => !["🥖","🥐"].includes(getEmoji(p.prodId)))
   }
 
   async function guardarHoy() {
