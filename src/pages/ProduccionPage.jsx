@@ -87,11 +87,11 @@ export default function ProduccionPage() {
   const getCat = prodId => productos.find(x => x.id === prodId)?.categoria || ""
 
   function prodsFiltrados() {
-    if (filtroCat === 'todos') return prodSeleccionados
-    if (filtroCat === "pan") return prodSeleccionados.filter(p => p.icono === "🥖")
-  if (filtroCat === "bol") return prodSeleccionados.filter(p => p.icono === "🥐")
-  return prodSeleccionados.filter(p => !["🥖","🥐"].includes(p.icono))
-  }
+  if (filtroCat === "todos") return prodSeleccionados
+  if (filtroCat === "pan") return prodSeleccionados.filter(p => (p.icono||"").includes("🥖"))
+  if (filtroCat === "bol") return prodSeleccionados.filter(p => (p.icono||"").includes("🥐"))
+  return prodSeleccionados.filter(p => ![(p.icono||"").includes("🥖"),(p.icono||"").includes("🥐")].includes(true))
+}
 
   async function guardarHoy() {
     if (!condicion.trim()) return toast.error('Indica las condiciones del día')
