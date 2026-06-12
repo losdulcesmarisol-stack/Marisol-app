@@ -84,7 +84,7 @@ export default function ProduccionPage() {
   const updateProd = (prodId, field, val) =>
     setProdSel(prev => prev.map(p => p.prodId === prodId ? { ...p, [field]: val } : p))
 
-  const getEmoji = prodId => productos.find(x => x.id === prodId)?.icono || ""
+  const getCat = prodId => productos.find(x => x.id === prodId)?.categoria || ""
 
   function prodsFiltrados() {
     if (filtroCat === 'todos') return prodSeleccionados
