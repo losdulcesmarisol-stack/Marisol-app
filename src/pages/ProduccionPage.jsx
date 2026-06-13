@@ -74,7 +74,7 @@ export default function ProduccionPage() {
       setProdSel(productos.map(p => ({
         prodId:  p.id,
         nombre:  p.nombre,
-        icono:   p.icono || '🍞',
+        icono:   p.icono || '',
         masa:    '',
         cocidas: '',
         mermas:  ''
