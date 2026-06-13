@@ -49,6 +49,7 @@ export default function ProduccionPage() {
   const [editando, setEditando]           = useState(null)
   const [editVal, setEditVal]             = useState({ masa: '', cocidas: '', mermas: '' })
   const [guardandoEdit, setGuardandoEdit] = useState(false)
+  const [showAnadir, setShowAnadir] = useState(false)
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -265,6 +266,24 @@ Responde en español, sé directo y práctico.` }]
               </div>
             ))
           }
+                  <div style={{marginTop:10}}>
+              ➕ Añadir producto
+            </button>
+            {showAnadir && (
+              <div style={{marginTop:8,display:'flex',flexWrap:'wrap',gap:6}}>
+                {productos
+                  .map(pr => (
+                    <button key={pr.id} onClick={() => {
+                      setProdSel(prev => [...prev, {prodId:pr.id,nombre:pr.nombre,icono:pr.icono||'🍞',masa:'',cocidas:'',mermas:''}])
+                      setShowAnadir(false)
+                    }} style={{padding:'5px 12px',borderRadius:20,fontSize:12,cursor:'pointer',border:'1px solid var(--bor)',background:'var(--bg2)',color:'var(--txt1)'}}>
+                      {pr.icono} {pr.nombre}
+                    </button>
+                  ))
+                }
+              </div>
+            )}
+          </div>
         </Card>
 
         <Card style={{ marginTop:12 }}>
