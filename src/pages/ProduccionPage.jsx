@@ -89,11 +89,9 @@ export default function ProduccionPage() {
 
   function prodsFiltrados() {
   if (filtroCat === "todos") return prodSeleccionados
-  const conIcono = prodSeleccionados.filter(p => p.icono && p.icono.trim() !== "")
-  const sinIcono = prodSeleccionados.filter(p => !p.icono || p.icono.trim() === "")
-  if (filtroCat === "pan") return [...prodSeleccionados.filter(p => (p.icono||"").includes("🥖")), ...sinIcono]
-  if (filtroCat === "bol") return prodSeleccionados.filter(p => (p.icono||"").includes("🥐"))
-  return prodSeleccionados.filter(p => ![(p.icono||"").includes("🥖"),(p.icono||"").includes("🥐")].includes(true) && p.icono && p.icono.trim() !== "")
+  if (filtroCat === "pan") return prodSeleccionados.filter(p => p.categoria === "Pan")
+  if (filtroCat === "bol") return prodSeleccionados.filter(p => ["Bollería","Magdalenas"].includes(p.categoria))
+  return prodSeleccionados.filter(p => !["Pan","Bollería","Magdalenas"].includes(p.categoria))
 }
 
   async function guardarHoy() {
