@@ -22,6 +22,9 @@ export default function ComandasPage() {
   const [editandoNota, setEditandoNota] = useState(null)
   const [notaTexto, setNotaTexto] = useState('')
   const [guardandoNota, setGuardandoNota] = useState(false)
+  const [editandoComanda, setEditandoComanda] = useState(null)
+  const [editItems, setEditItems] = useState([])
+  const [guardandoEdit, setGuardandoEdit] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -36,6 +39,9 @@ export default function ComandasPage() {
 
   useEffect(() => { load() }, [load])
 
+  function abrirEdicion(cmd){setEditandoComanda(cmd);setEditItems(JSON.parse(JSON.stringify(cmd.items||[])))}
+  function updateQty(idx,val){setEditItems(p=>p.map((it,i)=>i===idx?{...it,qty:parseFloat(val)||0}:it))}
+  async function guardarEdicion(){setGuardandoEdit(true);try{const tot=editItems.reduce((s,i)=>s+(i.qty*i.precio),0);const{error}=await supabase.from("comandas").update({items:editItems,total:Math.round(tot*100)/100}).eq("id",editandoComanda.id);if(error)throw error;setComandas(p=>p.map(c=>c.id===editandoComanda.id?{...c,items:editItems,total:Math.round(tot*100)/100}:c));setEditandoComanda(null);toast.success("Comanda actualizada")}catch(e){toast.error("Error: "+e.message)}setGuardandoEdit(false)}
   function abrirNota(comanda) {
     setEditandoNota(comanda.id)
     setNotaTexto(comanda.notas_panadero || '')
@@ -228,6 +234,7 @@ export default function ComandasPage() {
                   {c.estado === 'pendiente' && (
                     <div style={{ display:'flex',gap:6,flexWrap:'wrap' }}>
                       <Btn variant="success" size="sm" onClick={() => openCobrar(c)}>Cobrar</Btn>
+                      <Btn variant="ghost" size="sm" onClick={() => abrirEdicion(c)}>✏️ Editar</Btn>
                       <Btn variant="danger" size="sm" onClick={() => cancelar(c.id)}>Cancelar</Btn>
                     </div>
                   )}
@@ -240,6 +247,10 @@ export default function ComandasPage() {
           )
         })
       )}
+
+      <Modal open={!!editandoComanda} onClose={()=>setEditandoComanda(null)} title="✏️ Editar comanda" wide>
+        {editandoComanda&&(<><div style={{marginBottom:12}}><strong>{editandoComanda.cliente_nombre}</strong><span style={{fontSize:12,color:"var(--txt3)",marginLeft:8}}>{labelFecha(editandoComanda.fecha_entrega)}</span></div><div style={{border:"1px solid var(--bor)",borderRadius:8,overflow:"hidden",marginBottom:12}}><div style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"7px 12px",background:"var(--purbg)",fontSize:11,fontWeight:700,color:"var(--pur)"}}><span>Producto</span><span style={{textAlign:"center"}}>Cantidad</span><span style={{textAlign:"right"}}>Subtotal</span></div>{editItems.map((it,idx)=>(<div key={idx} style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"8px 12px",borderTop:"1px solid var(--bor)",alignItems:"center"}}><span>{it.icono||""} {it.nombre}</span><input type="number" min="0" step="0.5" value={it.qty} onChange={e=>updateQty(idx,e.target.value)} style={{width:"100%",padding:"5px 6px",borderRadius:6,border:"1.5px solid var(--pur)",textAlign:"center",fontSize:14,fontWeight:600}}/><span style={{textAlign:"right",color:"var(--txt2)"}}>€{(it.qty*it.precio).toFixed(2)}</span></div>))}<div style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"8px 12px",borderTop:"2px solid var(--bor)",fontWeight:700}}><span>TOTAL</span><span/><span style={{textAlign:"right",color:"var(--pur)"}}>€{editItems.reduce((s,i)=>s+i.qty*i.precio,0).toFixed(2)}</span></div></div><ModalFooter><Btn variant="ghost" onClick={()=>setEditandoComanda(null)}>Cancelar</Btn><Btn onClick={guardarEdicion} disabled={guardandoEdit}>{guardandoEdit?"Guardando...":"Guardar cambios"}</Btn></ModalFooter></> )}
+      </Modal>
 
       <Modal open={!!cobrarId} onClose={() => setCobrarId(null)} title="Cobrar comanda">
         {cobrarData && (
