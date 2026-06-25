@@ -1,5 +1,6 @@
 // src/pages/ClientesPage.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useClientes } from '../hooks/useClientes'
 import { useProductos } from '../hooks/useProductos'
@@ -27,6 +28,22 @@ export default function ClientesPage() {
   const [errors, setErrors] = useState({})
   const [preciosEsp, setPreciosEsp] = useState({}) // { prodId: precio }
   const [albaranCli, setAlbaranCli] = useState(null)
+  const [historialCli, setHistorialCli] = useState(null)
+  const [pedidosCli, setPedidosCli] = useState([])
+  const [loadingHist, setLoadingHist] = useState(false)
+
+  async function cargarHistorial(cli) {
+    setHistorialCli(cli)
+    setLoadingHist(true)
+    const { data } = await supabase
+      .from("comandas")
+      .select("*")
+      .eq("cliente_id", cli.id)
+      .order("created_at", { ascending: false })
+      .limit(50)
+    setPedidosCli(data || [])
+    setLoadingHist(false)
+  }
 
   function openNew() {
     setForm(EMPTY_FORM)
@@ -118,6 +135,7 @@ export default function ClientesPage() {
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {isAdmin && <Btn variant="ghost" size="sm" onClick={() => openEdit(c)}>✏️</Btn>}
                       <Btn variant="info" size="sm" onClick={() => setAlbaranCli(c)}>📄 Albarán</Btn>
+                      <Btn variant="ghost" size="sm" onClick={() => cargarHistorial(c)}>📋 Historial</Btn>
                       {isAdmin && <Btn variant="danger" size="sm" onClick={() => handleDelete(c.id, c.nombre)}>🗑</Btn>}
                     </div>
                   </td>
@@ -221,6 +239,53 @@ export default function ClientesPage() {
       </Modal>
 
       {/* Modal albarán */}
+      {historialCli && (
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'var(--bg1)',borderRadius:12,width:'100%',maxWidth:600,maxHeight:'80vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+            <div style={{padding:'16px 20px',borderBottom:'1px solid var(--bor)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:16}}>📋 {historialCli.nombre}</div>
+                <div style={{fontSize:12,color:'var(--txt3)'}}>Historial de pedidos</div>
+              </div>
+              <button onClick={() => setHistorialCli(null)} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'var(--txt3)'}}>✕</button>
+            </div>
+            <div style={{overflowY:'auto',flex:1,padding:16}}>
+              {loadingHist ? (
+                <div style={{textAlign:'center',padding:32,color:'var(--txt3)'}}>Cargando...</div>
+              ) : pedidosCli.length === 0 ? (
+                <div style={{textAlign:'center',padding:32,color:'var(--txt3)'}}>
+                  <div style={{fontSize:32,marginBottom:8}}>📭</div>
+                  <div>No hay pedidos registrados</div>
+                </div>
+              ) : pedidosCli.map(p => {
+                const lineas = p.lineas || p.items || []
+                const total = p.total || lineas.reduce((s,l) => s + (l.qty||l.cantidad||0)*(l.precio||0), 0)
+                const fecha = new Date(p.created_at).toLocaleDateString('es-ES', {weekday:'short',day:'numeric',month:'short',year:'numeric'})
+                return (
+                  <div key={p.id} style={{border:'1px solid var(--bor)',borderRadius:8,padding:'10px 14px',marginBottom:8}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                      <span style={{fontSize:13,fontWeight:600,color:'var(--txt1)'}}>{fecha}</span>
+                      <span style={{fontSize:14,fontWeight:700,color:'var(--pur)'}}>€{parseFloat(total).toFixed(2)}</span>
+                    </div>
+                    {lineas.map((l,i) => (
+                      <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--txt2)',padding:'2px 0'}}>
+                        <span>{l.qty||l.cantidad||0}× {l.nombre||l.producto||''}</span>
+                        <span>€{((l.qty||l.cantidad||0)*(l.precio||0)).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {p.notas && <div style={{marginTop:6,fontSize:11,color:'var(--txt3)',fontStyle:'italic'}}>📝 {p.notas}</div>}
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{padding:'12px 20px',borderTop:'1px solid var(--bor)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontSize:12,color:'var(--txt3)'}}>{pedidosCli.length} pedido(s) encontrado(s)</span>
+              <button onClick={() => setHistorialCli(null)} style={{padding:'7px 16px',borderRadius:8,border:'1px solid var(--bor)',background:'var(--bg2)',color:'var(--txt1)',fontSize:13,cursor:'pointer'}}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {albaranCli && (
         <AlbaranModal
           cliente={albaranCli}
