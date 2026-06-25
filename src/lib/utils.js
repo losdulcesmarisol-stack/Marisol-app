@@ -19,21 +19,17 @@ export const getEmoji = (cat) => CAT_EMOJI[cat] || '🍞'
  *  - A partir de las 13:00 → entrega mañana */
 export function getDiaPanadero() {
   const now = new Date()
-  const mins = now.getHours() * 60 + now.getMinutes()
-  if (mins >= 13 * 60) {
-    const man = new Date(now)
-    man.setDate(man.getDate() + 1)
-    return {
-      fechaEntrega: man.toISOString().slice(0, 10),
-      turno: mins >= 21 * 60 ? 'noche' : 'tarde',
-      label: 'mañana ' + man.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
-    }
-  }
-  return {
-    fechaEntrega: now.toISOString().slice(0, 10),
-    turno: 'mañana',
-    label: 'hoy ' + now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
-  }
+  const h = now.getHours()
+  // 00:00-03:59 -> sigue siendo jornada de HOY (madrugada)
+  // 04:00-09:59 -> fuera de horario pero apuntamos hoy
+  // 10:00-23:59 -> jornada de MANANA
+  const ref = new Date(now)
+  if (h >= 10) ref.setDate(ref.getDate() + 1)
+  const fechaEntrega = ref.toISOString().slice(0, 10)
+  const esManana = h >= 10
+  const label = (esManana ? 'mañana ' : 'hoy ') + ref.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+  const turno = h >= 21 ? 'noche' : h >= 13 ? 'tarde' : h >= 10 ? 'mañana' : 'madrugada'
+  return { fechaEntrega, turno, label }
 }
 
 /** Etiqueta visual para fecha de entrega */
