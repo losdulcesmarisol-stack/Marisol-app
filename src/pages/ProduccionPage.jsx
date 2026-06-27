@@ -267,6 +267,7 @@ Responde en español, sé directo y práctico.` }]
             ))
           }
                   <div style={{marginTop:10}}>
+            <button onClick={() => setShowAnadir(!showAnadir)} style={{padding:"6px 14px",borderRadius:8,border:"1px solid var(--bor)",background:"var(--bg2)",color:"var(--txt2)",fontSize:12,cursor:"pointer"}}>
               ➕ Añadir producto
             </button>
             {showAnadir && (
