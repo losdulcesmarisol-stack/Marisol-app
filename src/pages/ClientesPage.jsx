@@ -240,8 +240,8 @@ export default function ClientesPage() {
 
       {/* Modal albarán */}
       {historialCli && (
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
-          <div style={{background:'var(--bg1)',borderRadius:12,width:'100%',maxWidth:600,maxHeight:'80vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.75)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'#ffffff',borderRadius:12,width:'100%',maxWidth:600,maxHeight:'80vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
             <div style={{padding:'16px 20px',borderBottom:'1px solid var(--bor)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
                 <div style={{fontWeight:700,fontSize:16}}>📋 {historialCli.nombre}</div>
