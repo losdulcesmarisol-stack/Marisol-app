@@ -236,11 +236,7 @@ Responde en español, sé directo y práctico.` }]
         <Card style={{ marginTop: 12 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12, flexWrap:'wrap', gap:8 }}>
             <CardTitle style={{ margin:0 }}>Cantidades producidas</CardTitle>
-            <div style={{ display:'flex', gap:6 }}>
-              {[{key:'pan',label:'🥖 Pan'},{key:'bol',label:'🥐 Bollería'},{key:'dulces',label:'🍩 Dulces'},{key:'todos',label:'🔍 Todos'}].map(f => (
-                <button key={f.key} onClick={() => setFiltroCat(f.key)} style={btnCat(filtroCat === f.key)}>{f.label}</button>
-              ))}
-            </div>
+
           </div>
 
           {/* Cabecera */}
