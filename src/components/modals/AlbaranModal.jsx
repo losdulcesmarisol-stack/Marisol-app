@@ -87,6 +87,9 @@ export default function AlbaranModal({ cliente, productos, onClose }) {
           <div>
             <div class="brand-name">Productos MariSol</div>
             <div class="brand-sub">Artesanal · Con amor · Desde siempre</div>
+            <div style="font-size:11px;color:#555;margin-top:6px;">NIF: 07542369W</div>
+            <div style="font-size:11px;color:#555;">Calle María Cristina, 12 · 16610 Casas de Fernando Alonso · Cuenca</div>
+            <div style="font-size:11px;color:#555;">Tel: 665 284 126</div>
           </div>
         </div>
         <div>
