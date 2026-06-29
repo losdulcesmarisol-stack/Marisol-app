@@ -273,8 +273,9 @@ Responde en español, sé directo y práctico.` }]
                 {productos
                   .map(pr => (
                     <button key={pr.id} onClick={() => {
-                      setProdSel(prev => [...prev, {prodId:pr.id,nombre:pr.nombre,icono:pr.icono||'🍞',masa:'',cocidas:'',mermas:''}])
+                      setProdSel(prev => [...prev, {prodId:pr.id,nombre:pr.nombre,icono:pr.icono||"🍞",masa:"",cocidas:"",mermas:""}])
                       setShowAnadir(false)
+                      setFiltroCat("todos")
                     }} style={{padding:'5px 12px',borderRadius:20,fontSize:12,cursor:'pointer',border:'1px solid var(--bor)',background:'var(--bg2)',color:'var(--txt1)'}}>
                       {pr.icono} {pr.nombre}
                     </button>
