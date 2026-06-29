@@ -89,9 +89,9 @@ export default function ProduccionPage() {
 
   function prodsFiltrados() {
   if (filtroCat === "todos") return prodSeleccionados
-  if (filtroCat === "pan") return prodSeleccionados.filter(p => p.categoria === "Pan")
+  if (filtroCat === "pan") return prodSeleccionados.filter(p => PRODS_PAN.includes((p.nombre||"").toUpperCase().trim()))
   if (filtroCat === "bol") return prodSeleccionados.filter(p => ["Bollería","Magdalenas"].includes(p.categoria))
-  return prodSeleccionados.filter(p => !["Pan","Bollería","Magdalenas"].includes(p.categoria))
+  return prodSeleccionados.filter(p => !["pan","bol"].includes(filtroCat))
 }
 
   async function guardarHoy() {
