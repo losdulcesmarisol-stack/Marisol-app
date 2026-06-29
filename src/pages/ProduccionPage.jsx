@@ -16,6 +16,8 @@ const CONDICIONES_RAPIDAS = [
   { label: '🏖️ Verano',      value: 'Temporada verano' },
 ]
 
+const PRODS_PAN=["BARRA","BARRA DE MASA MADRE","BARRETA","BOCADILLOS","BOLSAS","COLINES","INTEGRAL","PAN DE 1/2","PAN DE 1/4","PAN DE KILO","PANECILLOS","PULGUITAS","ROSQUILLAS GRANDES","ROSQUILLAS PEQUEÑAS"]
+
 const CATS_PAN    = ['Pan', 'Tostadas']
 const CATS_BOL    = ['Bollería', 'Croissants', 'Magdalenas']
 const CATS_DULCES = ['Pastelería', 'Rosquillas', 'Especial']
