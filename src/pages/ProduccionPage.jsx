@@ -71,16 +71,152 @@ export default function ProduccionPage() {
     setLoading(false)
   }
 
-useEffect(() => {
-    const PRODS_FIJOS = ['BARRA','BARRA DE MASA MADRE','BARRETA','BOCADILLOS','BOLLAS','COLINES','INTEGRAL','PAN DE 1/2','PAN DE 1/4','PAN DE KILO','PANECILLOS','PULGUITAS','ROSQUILLAS GRANDES','ROSQUILLAS PEQUEÑAS']
-    const saved = registroHoy?.productos || []
-    const base = PRODS_FIJOS.map(nombre => {
-      const cat = productos.find(x => x.nombre.toUpperCase().trim() === nombre)
-      const g = saved.find(s => (s.nombre||'').toUpperCase().trim() === nombre)
-      return { prodId: cat?.id || nombre, nombre: cat?.nombre || nombre, icono: cat?.icono || '🥖', masa: g?.masa || '', cocidas: g?.cocidas || '', mermas: g?.mermas || '' }
+  useEffect(() => {
+    if (!productos.length) return
+    const FIJOS = ['BARRA','BARRA DE MASA MADRE','BARRETA','BOCADILLOS','BOLLAS','COLINES','INTEGRAL','PAN DE 1/2','PAN DE 1/4','PAN DE KILO','PANECILLOS','PULGUITAS','ROSQUILLAS GRANDES','ROSQUILLAS PEQUENAS']
+    const saved = registroHoy ? (registroHoy.productos || []) : []
+    const base = FIJOS.map(nombre => {
+      const cat = productos.find(x => x.nombre.toUpperCase().trim() === nombre.replace('PEQUENAS','PEQUEÑAS'))
+      const g = saved.find(s => (s.nombre||'').toUpperCase().trim() === nombre.replace('PEQUENAS','PEQUEÑAS'))
+      return { prodId: cat ? cat.id : nombre, nombre: cat ? cat.nombre : nombre, icono: cat ? (cat.icono||'') : '', masa: g ? (g.masa||'') : '', cocidas: g ? (g.cocidas||'') : '', mermas: g ? (g.mermas||'') : '' }
     })
+    const extras = saved.filter(s => !FIJOS.map(f => f.replace('PEQUENAS','PEQUEÑAS')).includes((s.nombre||'').toUpperCase().trim()))
     setProdSel([...base, ...extras])
+    if (!c_done) return
   }, [productos, registroHoy])
+
+  const updateProd = (prodId, field, val) =>
+    setProdSel(prev => prev.map(p => p.prodId === prodId ? { ...p, [field]: val } : p))
+
+  const getCat = prodId => productos.find(x => x.id === prodId)?.categoria || ""
+
+  function prodsFiltrados() {
+  if (filtroCat === "todos") return prodSeleccionados
+  if (filtroCat === "pan") return prodSeleccionados.filter(p => PRODS_PAN.includes((p.nombre||"").toUpperCase().trim()))
+  if (filtroCat === "bol") return prodSeleccionados.filter(p => ["Bollería","Magdalenas"].includes(p.categoria))
+  return prodSeleccionados.filter(p => !["pan","bol"].includes(filtroCat))
+}
+
+  async function guardarHoy() {
+    if (!condicion.trim()) return toast.error('Indica las condiciones del día')
+    setGuardando(true)
+    const payload = {
+      fecha:     todayStr(),
+      condicion: condicion.trim(),
+      notas:     notas.trim(),
+      productos: prodSeleccionados.filter(p => p.masa || p.cocidas || p.mermas)
+    }
+    const { error } = registroHoy
+      ? await supabase.from('produccion_diaria').update(payload).eq('id', registroHoy.id)
+      : await supabase.from('produccion_diaria').insert(payload)
+    if (error) toast.error('Error: ' + error.message)
+    else { toast.success('Producción guardada ✓'); cargarDatos() }
+    setGuardando(false)
+  }
+
+  async function pedirRecomendacion() {
+    if (!condMañana.trim()) return toast.error('Indica las condiciones de mañana')
+    setCargandoIA(true)
+    setRecomendacion(null)
+    try {
+      const contexto = historial.slice(0, 30).map(d => ({
+        fecha:     d.fecha,
+        condicion: d.condicion,
+        productos: (d.productos || []).map(p => ({
+          nombre:  p.nombre,
+          masa:    gMasa(p),
+          cocidas: gCocidas(p),
+          mermas:  gMermas(p)
+        }))
+      }))
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY || '',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-5', max_tokens: 700,
+          messages: [{ role: 'user', content:
+            `Eres el asesor de producción de Dulces Marisol, una panadería artesana.
+Analiza el historial y recomienda cuánto producir mañana (masa y cocidas por producto).
+Condición de mañana: "${condMañana}"
+Historial: ${JSON.stringify(contexto)}
+Responde en español, sé directo y práctico.` }]
+        })
+      })
+      const data = await res.json()
+      setRecomendacion(data.content?.[0]?.text || 'Sin respuesta')
+    } catch { toast.error('Error conectando con la IA') }
+    setCargandoIA(false)
+  }
+
+  const abrirEdicion = (diaId, prod) => {
+    setEditando({ diaId, prodId: prod.prodId })
+    setEditVal({ masa: gMasa(prod), cocidas: gCocidas(prod) || '', mermas: gMermas(prod) || '' })
+  }
+  const cancelarEdicion = () => setEditando(null)
+
+  async function guardarEdicion(dia) {
+    setGuardandoEdit(true)
+    const nuevosProd = (dia.productos || []).map(p =>
+      p.prodId === editando.prodId ? { ...p, ...editVal } : p
+    )
+    const { error } = await supabase.from('produccion_diaria').update({ productos: nuevosProd }).eq('id', dia.id)
+    if (error) toast.error('Error: ' + error.message)
+    else {
+      toast.success('Actualizado ✓')
+      setHistorial(prev => prev.map(d => d.id === dia.id ? { ...d, productos: nuevosProd } : d))
+      cancelarEdicion()
+    }
+    setGuardandoEdit(false)
+  }
+
+  if (loading) return <div style={{ padding: 32 }}><Loading /></div>
+
+  // Estilos reutilizables
+  const btnTab = active => ({
+    padding: '7px 16px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
+    border: '1px solid var(--bor)',
+    background: active ? 'var(--pur)' : 'var(--bg2)',
+    color:      active ? '#fff'       : 'var(--txt2)',
+    fontWeight: active ? 600          : 400,
+  })
+  const btnCat = active => ({
+    padding: '4px 12px', borderRadius: 16, fontSize: 12, cursor: 'pointer',
+    border:     active ? '2px solid var(--pur)' : '1px solid var(--bor)',
+    background: active ? 'var(--purbg)'         : 'var(--bg2)',
+    color:      active ? 'var(--pur)'           : 'var(--txt2)',
+    fontWeight: active ? 600                    : 400,
+  })
+  const btnCond = active => ({
+    padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+    border:     active ? '2px solid var(--pur)' : '1px solid var(--bor)',
+    background: active ? 'var(--purbg)'         : 'var(--bg2)',
+    color:      active ? 'var(--pur)'           : 'var(--txt2)',
+    fontWeight: active ? 600                    : 400,
+  })
+  const input = (extra={}) => ({
+    width: '100%', padding: '6px 4px', borderRadius: 7, textAlign: 'center',
+    border: '1px solid var(--bor)', background: 'var(--bg2)',
+    color: 'var(--txt1)', fontSize: 14, fontWeight: 500, ...extra
+  })
+
+  // Grid de 3 columnas de datos: masa | cocidas | mermas
+  const COLS = '1fr 95px 95px 95px'
+  const COLS_DETAIL = '1fr 80px 80px 80px 55px'
+
+  return (
+    <div style={{ padding: '16px', maxWidth: 860, margin: '0 auto' }}>
+      <SectionHeader title="🏭 Producción" subtitle="Registro diario y recomendaciones de la IA" />
+
+      {/* Pestañas */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {[{ key:'hoy', label:'📋 Hoy' }, { key:'historial', label:'📊 Historial' }, { key:'ia', label:'🤖 IA' }].map(t => (
+          <button key={t.key} onClick={() => setTabActiva(t.key)} style={btnTab(tabActiva === t.key)}>{t.label}</button>
+        ))}
       </div>
 
       {/* ══════════ HOY ══════════ */}
