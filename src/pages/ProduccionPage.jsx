@@ -82,7 +82,6 @@ export default function ProduccionPage() {
     })
     const extras = saved.filter(s => !FIJOS.map(f => f.replace('PEQUENAS','PEQUEÑAS')).includes((s.nombre||'').toUpperCase().trim()))
     setProdSel([...base, ...extras])
-    if (!c_done) return
   }, [productos, registroHoy])
 
   const updateProd = (prodId, field, val) =>
