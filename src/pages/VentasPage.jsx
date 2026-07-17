@@ -15,6 +15,7 @@ export default function VentasPage() {
   const { productos, loading: loadingP } = useProductos()
   const { clientes } = useClientes()
   const [cliId, setCliId] = useState('')
+  const [fechaCustom, setFechaCustom] = useState('')
   const [ticket, setTicket] = useState([])
   const [historial, setHistorial] = useState([])
   const [loadingH, setLoadingH] = useState(false)
@@ -95,7 +96,7 @@ export default function VentasPage() {
   async function registrar(esComanda) {
     if (!ticket.length) { toast.error('El ticket esta vacio'); return }
     const now = new Date()
-    const base = { fecha_registro: todayStr(), hora_registro: now.toTimeString().slice(0, 5), fecha_entrega: dp.fechaEntrega, cliente_id: cliId || null, cliente_nombre: cli ? cli.nombre : 'Directo', items: ticket, total }
+    const base = { fecha_registro: todayStr(), hora_registro: now.toTimeString().slice(0, 5), fecha_entrega: fechaCustom || dp.fechaEntrega, cliente_id: cliId || null, cliente_nombre: cli ? cli.nombre : 'Directo', items: ticket, total }
     try {
       if (esComanda) {
         const { error } = await supabase.from('comandas').insert({ ...base, estado: 'pendiente' })
@@ -196,6 +197,15 @@ export default function VentasPage() {
           </div>
           <div className={styles.tTotal}><span>TOTAL</span><span>{fmt(total)}</span></div>
           <Btn fullWidth onClick={() => registrar(false)} disabled={!ticket.length}>Cobrar ahora</Btn>
+          <div style={{marginTop:8,marginBottom:4}}>
+            <div style={{fontSize:10,fontWeight:700,color:'var(--txt3)',textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>Fecha de entrega</div>
+            <input type="date" value={fechaCustom || dp.fechaEntrega}
+              onChange={e => setFechaCustom(e.target.value)}
+              min={dp.fechaEntrega}
+              style={{width:'100%',padding:'7px 10px',borderRadius:8,border:'1px solid var(--bor)',background:'var(--bg2)',color:'var(--txt1)',fontSize:13}}
+            />
+            <div style={{fontSize:10,color:'var(--txt3)',marginTop:3}}>Por defecto: {dp.label}</div>
+          </div>
           <Btn variant="ghost" fullWidth onClick={() => registrar(true)} disabled={!ticket.length} style={{ marginTop: 5 }}>Comanda</Btn>
           {ticket.length > 0 && <Btn variant="ghost" fullWidth onClick={() => setTicket([])} size="sm" style={{ marginTop: 4, color: 'var(--txt3)' }}>Limpiar</Btn>}
         </div>
