@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useProductos } from '../hooks/useProductos'
 import { fmt, todayStr, labelFecha } from '../lib/utils'
 import { SectionHeader, FilterTabs, Loading, Empty, Btn, Modal, ModalFooter, Tag } from '../components/ui'
 import toast from 'react-hot-toast'
@@ -13,6 +14,7 @@ const FILTROS = [
 
 export default function ComandasPage() {
   const { refreshPendientes } = useOutletContext()
+  const { productos } = useProductos()
   const [filtro, setFiltro] = useState('pend')
   const [comandas, setComandas] = useState([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +41,16 @@ export default function ComandasPage() {
 
   useEffect(() => { load() }, [load])
 
-  function abrirEdicion(cmd){setEditandoComanda(cmd);setEditItems(JSON.parse(JSON.stringify(cmd.items||[])))}
+  function abrirEdicion(cmd){
+    setEditandoComanda(cmd)
+    const saved = cmd.items || []
+    const todos = productos.map(pr => {
+      const existe = saved.find(i => i.prodId === pr.id || i.nombre === pr.nombre)
+      return existe ? existe : { prodId: pr.id, nombre: pr.nombre, icono: pr.icono || '', qty: 0, precio: pr.precio || 0 }
+    })
+    const extras = saved.filter(s => !productos.find(pr => pr.id === s.prodId || pr.nombre === s.nombre))
+    setEditItems([...todos, ...extras])
+  }
   function updateQty(idx,val){setEditItems(p=>p.map((it,i)=>i===idx?{...it,qty:parseFloat(val)||0}:it))}
   async function guardarEdicion(){setGuardandoEdit(true);try{const tot=editItems.reduce((s,i)=>s+(i.qty*i.precio),0);const{error}=await supabase.from("comandas").update({items:editItems,total:Math.round(tot*100)/100}).eq("id",editandoComanda.id);if(error)throw error;setComandas(p=>p.map(c=>c.id===editandoComanda.id?{...c,items:editItems,total:Math.round(tot*100)/100}:c));setEditandoComanda(null);toast.success("Comanda actualizada")}catch(e){toast.error("Error: "+e.message)}setGuardandoEdit(false)}
   function abrirNota(comanda) {
