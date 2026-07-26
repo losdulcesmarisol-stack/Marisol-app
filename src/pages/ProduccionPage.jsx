@@ -305,7 +305,12 @@ Responde en español, sé directo y práctico.` }]
           {historial.length === 0
             ? <Empty icon="📋" text="No hay registros todavía." />
             : historial.map(dia => {
-              const prods  = dia.productos || []
+              const FIJOS_HIST = ['BARRA','BARRA DE MASA MADRE','BARRETA','BOCADILLOS','BOLLAS','COLINES','INTEGRAL','PAN DE 1/2','PAN DE 1/4','PAN DE KILO','PANECILLOS','PULGUITAS','ROSQUILLAS GRANDES','ROSQUILLAS PEQUEÑAS']
+              const saved = dia.productos || []
+              const prods = FIJOS_HIST.map(nombre => {
+                const g = saved.find(s => (s.nombre||'').toUpperCase().trim() === nombre)
+                return g || { prodId: nombre, nombre, icono: '🥖', masa: '', cocidas: '', mermas: '' }
+              })
               const totC   = prods.reduce((s, p) => s + gCocidas(p), 0)
               const totM   = prods.reduce((s, p) => s + gMermas(p),  0)
               const abierto = diaExpandido === dia.id
