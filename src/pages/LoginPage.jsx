@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import styles from './LoginPage.module.css'
-
-const URL = 'https://lkcoxxcwtsvdyjeyyqll.supabase.co'
-const KEY = 'sb_publishable_Il4ay0whxQIXDTdZ-0tvCQ_uR7-FUKj'
 
 export default function LoginPage() {
   const { login, user } = useAuth()
@@ -15,21 +13,24 @@ export default function LoginPage() {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [entrando, setEntrando] = useState(false)
 
   useEffect(() => { if (user) navigate('/', { replace: true }) }, [user])
 
   useEffect(() => {
-    fetch(`${URL}/rest/v1/usuarios?select=id,nombre,pin,rol&activo=eq.true&order=nombre`, {
-      headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` }
-    })
-    .then(r => r.json())
-    .then(data => { setUsuarios(data || []); if (data?.length) setSelId(data[0].id) })
-    .catch(e => setError('Sin conexión: ' + e.message))
-    .finally(() => setLoading(false))
+    // Solo nombre y rol: los PIN nunca salen del servidor
+    supabase.rpc('usuarios_login')
+      .then(({ data, error }) => {
+        if (error) throw error
+        setUsuarios(data || []); if (data?.length) setSelId(data[0].id)
+      })
+      .catch(e => setError('Sin conexión: ' + e.message))
+      .finally(() => setLoading(false))
   }, [])
 
   function pressKey(k) {
     setError('')
+    if (entrando) return
     if (k === 'C') { setPin(''); return }
     if (k === 'OK') { doLogin(pin); return }
     if (pin.length >= 4) return
@@ -38,17 +39,19 @@ export default function LoginPage() {
     if (p.length === 4) setTimeout(() => doLogin(p), 200)
   }
 
-  function doLogin(p) {
+  async function doLogin(p) {
     if (!selId) { setError('Selecciona un usuario'); return }
+    if (p.length !== 4) { setError('El PIN tiene 4 números'); return }
     const u = usuarios.find(x => x.id === selId)
-    if (!u) { setError('Usuario no encontrado'); return }
-    if (p !== u.pin) {
-      setError('PIN incorrecto — esperado: ' + u.pin)
+    setEntrando(true)
+    const err = await login(selId, p)
+    setEntrando(false)
+    if (err) {
+      setError(err)
       setPin('')
       return
     }
-    login({ id: u.id, nombre: u.nombre, rol: u.rol })
-    toast.success('Bienvenida, ' + u.nombre)
+    toast.success('Bienvenida, ' + (u?.nombre || ''))
     navigate('/', { replace: true })
   }
 
@@ -79,6 +82,7 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
+          {entrando && <p style={{color:'#888'}}>Entrando...</p>}
           {error && <p className={styles.err}>{error}</p>}
           <p style={{fontSize:10,color:'#bbb',marginTop:6}}>{usuarios.length} usuario(s) cargados</p>
         </>}

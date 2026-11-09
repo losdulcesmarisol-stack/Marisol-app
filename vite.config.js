@@ -26,7 +26,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/lkcoxxcwtsvdyjeyyqll\.supabase\.co/,
+            urlPattern: /^https:\/\/lkcoxxcwtsvdyjeyyqll\.supabase\.co\/rest\//,
             handler: 'NetworkFirst',
             options: { cacheName: 'supabase-cache', networkTimeoutSeconds: 10 }
           }

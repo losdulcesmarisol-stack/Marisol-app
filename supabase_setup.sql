@@ -21,7 +21,7 @@ create table if not exists usuarios (
   created_at timestamptz default now()
 );
 
--- Usuarios por defecto (PIN admin: 1234 / PIN empleado: 0000)
+-- Usuarios por defecto. ¡Cambia estos PIN en cuanto entres por primera vez!
 insert into usuarios (nombre, pin, rol) values
   ('Marisol', '1234', 'admin'),
   ('Empleado', '0000', 'empleado')
@@ -142,6 +142,18 @@ create table if not exists albaranes (
 );
 
 -- ============================================================
+-- 8b. PRODUCCIÓN DIARIA (existía en la base de datos pero faltaba aquí)
+-- ============================================================
+create table if not exists produccion_diaria (
+  id uuid primary key default gen_random_uuid(),
+  fecha date not null default current_date,
+  condicion text default '',
+  productos jsonb not null default '[]'::jsonb,
+  notas text default '',
+  created_at timestamptz default now()
+);
+
+-- ============================================================
 -- 9. ROW LEVEL SECURITY (RLS)
 -- Necesario para que la app pueda leer y escribir datos
 -- ============================================================
@@ -243,4 +255,13 @@ end $$;
 --   Marisol (admin)  → 1234
 --   Empleado         → 0000
 -- Puedes cambiarlos desde ⚙️ Usuarios dentro de la app
+-- ============================================================
+
+-- ============================================================
+-- SEGURIDAD (noviembre 2026)
+-- Las políticas "pub_*" de arriba dejan la base de datos abierta a cualquiera.
+-- Después de este archivo hay que aplicar, en orden:
+--   supabase/migrations/20261109_01_login_seguro_parte1.sql
+--   supabase/migrations/20261109_02_cerrar_base_datos.sql
+-- y desplegar la función supabase/functions/login-pin (sin verificación JWT).
 -- ============================================================

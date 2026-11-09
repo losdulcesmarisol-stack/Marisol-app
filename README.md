@@ -59,7 +59,7 @@ Esto descarga todas las librerías necesarias (puede tardar 1-2 minutos).
 
 1. Ve a supabase.com → tu proyecto
 2. Menú izquierdo → SQL Editor → New query
-3. Copia y pega el contenido del archivo `supabase_setup_v3.sql`
+3. Copia y pega el contenido del archivo `supabase_setup.sql`
 4. Pulsa Run (botón verde)
 5. Verifica en Table Editor que aparecen 8 tablas
 

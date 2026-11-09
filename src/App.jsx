@@ -12,13 +12,19 @@ import ComparadorPage from './pages/ComparadorPage'
 import UsuariosPage from './pages/UsuariosPage'
 import ProduccionPage from './pages/ProduccionPage'
 
+function Cargando() {
+  return <p style={{ padding: 40, textAlign: 'center', color: '#888' }}>Cargando...</p>
+}
+
 function PrivateRoute({ children }) {
-  const { user } = useAuth()
+  const { user, cargando } = useAuth()
+  if (cargando) return <Cargando />
   return user ? children : <Navigate to="/login" replace />
 }
 
 function AdminRoute({ children }) {
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, cargando } = useAuth()
+  if (cargando) return <Cargando />
   if (!user) return <Navigate to="/login" replace />
   if (!isAdmin) return <Navigate to="/" replace />
   return children

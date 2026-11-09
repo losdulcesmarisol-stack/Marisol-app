@@ -20,7 +20,7 @@ export default function UsuariosPage() {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase.from('usuarios').select('*').order('nombre')
+    const { data } = await supabase.from('usuarios').select('id,nombre,rol,activo,created_at').order('nombre')
     setUsuarios(data || [])
     setLoading(false)
   }
@@ -43,11 +43,10 @@ export default function UsuariosPage() {
     try {
       const datos = { nombre: form.nombre.trim(), rol: form.rol }
       if (form.pin) datos.pin = form.pin
-      if (editId) {
-        await supabase.from('usuarios').update(datos).eq('id', editId)
-      } else {
-        await supabase.from('usuarios').insert({ ...datos, activo: true })
-      }
+      const { error } = editId
+        ? await supabase.from('usuarios').update(datos).eq('id', editId)
+        : await supabase.from('usuarios').insert({ ...datos, activo: true })
+      if (error) throw error
       toast.success('✅ Usuario guardado')
       setModal(false)
       await load()
@@ -60,7 +59,8 @@ export default function UsuariosPage() {
 
   async function toggle(u) {
     if (u.id === me.id) { toast.error('No puedes desactivarte a ti mismo'); return }
-    await supabase.from('usuarios').update({ activo: !u.activo }).eq('id', u.id)
+    const { error } = await supabase.from('usuarios').update({ activo: !u.activo }).eq('id', u.id)
+    if (error) { toast.error('Error: ' + error.message); return }
     toast.success(u.activo ? '⛔ Usuario desactivado' : '✅ Usuario activado')
     await load()
   }
