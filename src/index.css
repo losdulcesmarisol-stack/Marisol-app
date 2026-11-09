@@ -1,32 +1,39 @@
 /* src/index.css */
 :root {
-  --bg: #f4f2ef;
-  --sur: #ffffff;
-  --sur2: #f8f6f3;
-  --sur3: #edeaf5;
-  --bor: #e0dbd8;
-  --bor2: #c5beed;
-  --pur: #4a3d8f;
-  --purl: #6556b8;
-  --purd: #322b6a;
-  --purbg: #eeeaf8;
-  --txt: #1a1628;
-  --txt2: #6b6080;
-  --txt3: #a098b5;
+  /* Paleta de dulcesmarisol.es: morado de la marca, dorado, chocolate y crema */
+  --bg: #f9f4e8;
+  --sur: #fffdf8;
+  --sur2: #fbf7ee;
+  --sur3: #f1eadb;
+  --bor: #eadfc6;
+  --bor2: #d9c79c;
+  --pur: #2e2a5c;
+  --purl: #46407f;
+  --purd: #1f1c42;
+  --purbg: #efedf6;
+  --gold: #d1a53e;
+  --goldl: #e6c46f;
+  --goldd: #a8801f;
+  --choc: #3a2519;
+  --txt: #2b1d14;
+  --txt2: #6b5848;
+  --txt3: #a08c78;
   --ok: #2a7a48;
   --err: #b52e1e;
   --wrn: #b06a10;
   --inf: #1e5ca0;
   --r: 10px;
   --rl: 14px;
-  --sh: 0 2px 12px rgba(74, 61, 143, 0.08);
-  --shl: 0 8px 32px rgba(74, 61, 143, 0.15);
+  --sh: 0 2px 14px rgba(58, 37, 25, 0.07);
+  --shl: 0 10px 36px rgba(46, 42, 92, 0.18);
+  --serif: 'IM Fell English', Georgia, 'Times New Roman', serif;
+  --sans: 'Source Sans 3', 'Source Sans Pro', Helvetica, Arial, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 14px; }
+html { font-size: 15px; }
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--sans);
   background: var(--bg);
   color: var(--txt);
   min-height: 100vh;
@@ -35,11 +42,11 @@ body {
 }
 
 /* Botones base */
-button { cursor: pointer; font-family: 'Inter', sans-serif; }
+button { cursor: pointer; font-family: var(--sans); }
 
 /* Inputs base */
 input, select, textarea {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   color: var(--txt);
   background: var(--sur2);

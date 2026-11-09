@@ -60,25 +60,25 @@ export default function AlbaranModal({ cliente, productos, onClose }) {
       <title>Albarán ${alb.numero}</title>
       <style>
         body{font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:40px;color:#1a1628;}
-        .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #4a3d8f;padding-bottom:16px;margin-bottom:24px;}
+        .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #2e2a5c;padding-bottom:16px;margin-bottom:24px;}
         .brand{display:flex;align-items:center;gap:14px;}
-        .brand-name{font-size:20px;font-weight:700;color:#4a3d8f;}
+        .brand-name{font-size:20px;font-weight:700;color:#2e2a5c;}
         .brand-sub{font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;}
-        .alb-title{font-size:18px;font-weight:700;color:#4a3d8f;text-align:right;}
+        .alb-title{font-size:18px;font-weight:700;color:#2e2a5c;text-align:right;}
         .alb-num{font-size:15px;font-weight:600;}
         .alb-date{font-size:12px;color:#666;}
-        .cli-box{background:#eeeaf8;border-left:3px solid #4a3d8f;padding:12px;border-radius:8px;margin-bottom:20px;}
+        .cli-box{background:#efedf6;border-left:3px solid #2e2a5c;padding:12px;border-radius:8px;margin-bottom:20px;}
         .cli-box .label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
         .cli-box .name{font-size:15px;font-weight:700;}
         .cli-box .detail{font-size:12px;color:#666;}
         table{width:100%;border-collapse:collapse;margin-bottom:16px;}
-        th{background:#4a3d8f;color:#fff;padding:9px 11px;text-align:left;font-size:10px;letter-spacing:1px;}
+        th{background:#2e2a5c;color:#fff;padding:9px 11px;text-align:left;font-size:10px;letter-spacing:1px;}
         td{padding:9px 11px;border-bottom:1px solid #e0dbd8;font-size:13px;}
-        tr:nth-child(even) td{background:#f7f4ff;}
+        tr:nth-child(even) td{background:#fbf7ee;}
         .totals{text-align:right;border-top:1px solid #c5beed;padding-top:12px;}
         .totals .line{font-size:13px;color:#666;margin-bottom:3px;}
-        .totals .grand{font-size:20px;font-weight:700;color:#4a3d8f;}
-        .notas{background:#eeeaf8;padding:10px;border-radius:7px;font-size:12px;color:#666;margin-top:16px;}
+        .totals .grand{font-size:20px;font-weight:700;color:#2e2a5c;}
+        .notas{background:#efedf6;padding:10px;border-radius:7px;font-size:12px;color:#666;margin-top:16px;}
         .footer{display:flex;justify-content:space-between;margin-top:32px;font-size:11px;color:#888;}
         @media print{body{padding:20px;}}
       </style></head><body>

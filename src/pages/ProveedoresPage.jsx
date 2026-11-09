@@ -295,7 +295,7 @@ export default function ProveedoresPage() {
               <span style={{ color:'var(--pur)',fontWeight:600 }}>{fmt(i.precio_unit)}/ud</span>
             </div>
           ))}
-          <div style={{ marginTop:9,fontSize:16,fontFamily:"'Playfair Display',serif",color:'var(--pur)' }}>Total: {fmt(modalVerFac.total)}</div>
+          <div style={{ marginTop:9,fontSize:16,fontWeight:700,color:'var(--pur)' }}>Total: {fmt(modalVerFac.total)}</div>
           <ModalFooter>
             <Btn variant="ghost" onClick={()=>setModalVerFac(null)}>Cerrar</Btn>
             {modalVerFac.estado==='pendiente' && <Btn variant="success" onClick={()=>{marcarPagada(modalVerFac.id);setModalVerFac(null)}}>Marcar pagada</Btn>}

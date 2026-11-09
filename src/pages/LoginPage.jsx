@@ -60,10 +60,10 @@ export default function LoginPage() {
   return (
     <div className={styles.wrapper}>
       <div className={styles.box}>
-        <div style={{fontSize:52,marginBottom:8}}>🥖</div>
+        <img src="/logo.png" alt="Productos MariSol" className={styles.logo} />
         <h1 className={styles.title}>Productos MariSol</h1>
         <p className={styles.sub}>Artesanal · Con amor</p>
-        {loading ? <p style={{padding:20,color:'#888'}}>Conectando...</p> : <>
+        {loading ? <p style={{padding:20,color:'var(--txt3)'}}>Conectando...</p> : <>
           <div className={styles.field}>
             <label>Tu usuario</label>
             <select value={selId} onChange={e=>{setSelId(e.target.value);setPin('');setError('')}}>
@@ -82,9 +82,8 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
-          {entrando && <p style={{color:'#888'}}>Entrando...</p>}
+          {entrando && <p style={{color:'var(--txt3)'}}>Entrando...</p>}
           {error && <p className={styles.err}>{error}</p>}
-          <p style={{fontSize:10,color:'#bbb',marginTop:6}}>{usuarios.length} usuario(s) cargados</p>
         </>}
       </div>
     </div>

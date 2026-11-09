@@ -99,7 +99,7 @@ export default function DashboardPage() {
     <div className="fade-in">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 9 }}>
         <div>
-          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22 }} id="saludo">
+          <h2 style={{ fontFamily: "var(--serif)", fontWeight: 400, fontSize: 28, color: 'var(--pur)' }} id="saludo">
             {dp.turno === 'tarde' ? 'Buenas tardes ☀️' : dp.turno === 'noche' ? 'Buenas noches 🌙' : 'Buenos días 🌅'}, Marisol
           </h2>
           <p style={{ fontSize: 12, color: 'var(--txt3)', marginTop: 2 }}>
@@ -140,8 +140,8 @@ export default function DashboardPage() {
                       style={{
                         width: '100%', borderRadius: '4px 4px 0 0',
                         height: d.h + '%', minHeight: d.tot > 0 ? 5 : 2,
-                        background: d.esHoy ? 'var(--pur)' : 'var(--purbg)',
-                        border: '1px solid ' + (d.esHoy ? 'var(--purd)' : 'var(--bor2)'),
+                        background: d.esHoy ? 'linear-gradient(180deg, var(--goldl), var(--gold))' : 'var(--sur3)',
+                        border: '1px solid ' + (d.esHoy ? 'var(--goldd)' : 'var(--bor2)'),
                         cursor: 'pointer', transition: 'height .5s'
                       }}
                     />
@@ -187,10 +187,10 @@ export default function DashboardPage() {
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {pendElabH.items.map((r, i) => (
-                    <div key={i} style={{ background:'var(--purbg)',border:'1px solid var(--bor2)',borderRadius:10,padding:'10px 14px',textAlign:'center',minWidth:80 }}>
+                    <div key={i} style={{ background:'var(--sur2)',border:'1px solid var(--bor2)',borderRadius:10,padding:'10px 14px',textAlign:'center',minWidth:80 }}>
                       <div style={{ fontSize: 22 }}>{r.ico || '🍞'}</div>
                       <div style={{ fontWeight: 600, fontSize: 12 }}>{r.nom}</div>
-                      <div style={{ fontSize: 20, fontFamily:"'Playfair Display',serif", color:'var(--pur)' }}>{r.qty}</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color:'var(--choc)' }}>{r.qty}</div>
                       <div style={{ fontSize: 10, color: 'var(--txt3)' }}>uds</div>
                     </div>
                   ))}

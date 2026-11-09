@@ -159,7 +159,7 @@ export default function ComandasPage() {
 
               {/* RESUMEN PARA EL PANADERO */}
               {resumenArr.length > 0 && (
-                <div style={{ background:'linear-gradient(135deg,var(--purbg),#e8e3f8)', border:'1.5px solid var(--bor2)', borderRadius:'var(--rl)', padding:'12px 14px', marginBottom:10 }}>
+                <div style={{ background:'linear-gradient(135deg,var(--purbg),#f6eedb)', border:'1.5px solid var(--bor2)', borderRadius:'var(--rl)', padding:'12px 14px', marginBottom:10 }}>
                   <div style={{ fontSize:11,fontWeight:700,color:'var(--pur)',textTransform:'uppercase',letterSpacing:1,marginBottom:8 }}>
                     Resumen para el panadero
                   </div>
@@ -211,7 +211,7 @@ export default function ComandasPage() {
                         placeholder="Ej: Hacer 2 batidos de magdalenas, usar harina especial..."
                         rows={3}
                         autoFocus
-                        style={{ width:'100%',borderRadius:'var(--r)',border:'1.5px solid var(--pur)',padding:'8px 10px',fontSize:13,fontFamily:'Inter,sans-serif',resize:'vertical' }}
+                        style={{ width:'100%',borderRadius:'var(--r)',border:'1.5px solid var(--pur)',padding:'8px 10px',fontSize:13,fontFamily:'var(--sans)',resize:'vertical' }}
                       />
                       <div style={{ display:'flex',gap:6,marginTop:6 }}>
                         <Btn variant="ghost" size="sm" onClick={() => setEditandoNota(null)}>Cancelar</Btn>
@@ -279,7 +279,7 @@ export default function ComandasPage() {
                 📝 {cobrarData.notas_panadero}
               </div>
             )}
-            <div style={{ fontSize:18,fontFamily:"'Playfair Display',serif",color:'var(--pur)' }}>
+            <div style={{ fontSize:18,fontWeight:700,color:'var(--pur)' }}>
               Total: {fmt(cobrarData.total)}
             </div>
           </>
