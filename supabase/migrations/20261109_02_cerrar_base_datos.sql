@@ -1,4 +1,4 @@
--- Parte 2: cerrar la base de datos. APLICAR SOLO cuando la nueva versión de la
+-- Parte 2 (aplicada el 2026-11-09): cerrar la base de datos. Aplicar solo cuando la nueva versión de la
 -- app (login con la función login-pin) ya esté publicada en Netlify: la versión
 -- antigua deja de funcionar en cuanto se aplica esto.
 
@@ -47,3 +47,8 @@ create policy facturas_update on storage.objects for update to authenticated
   using (bucket_id = 'facturas' and public.usuario_activo());
 create policy facturas_delete on storage.objects for delete to authenticated
   using (bucket_id = 'facturas' and public.usuario_activo());
+
+-- 5. Las funciones internas solo para usuarios con sesión
+-- (usuarios_login() sí es pública a propósito: la pantalla de login la necesita)
+revoke execute on function public.usuario_activo() from anon;
+revoke execute on function public.es_admin() from anon;
