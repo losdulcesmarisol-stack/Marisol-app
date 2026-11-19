@@ -168,6 +168,8 @@ td input, td select { padding: 6px 8px; }
 @media (prefers-reduced-motion: no-preference) { .fade { animation: fade .18s ease; } @keyframes fade { from { opacity: .4; transform: translateY(3px); } to { opacity: 1; transform: none; } } }
 </style>
 
+<script src="/vendor/jspdf-2.5.1.umd.min.js"></script>
+<script src="/vendor/jspdf-autotable-3.8.2.min.js"></script>
 </head>
 <body>
 <div class="demo">DEMO del módulo APPCC · datos de ejemplo · no se guarda nada en vuestra base de datos</div>
@@ -396,7 +398,7 @@ function alergenosProducto(p) {
 S.alb = null; S.verProd = false; S.motivoPara = null; S.tempDraft = null;
 
 // ───────── Pestañas ─────────
-const TABS = [['hoy', 'Hoy'], ['reg', 'Registros'], ['plan', 'Plan de limpieza'], ['stock', 'Stock'], ['traza', 'Trazabilidad'], ['aler', 'Alérgenos'], ['rec', 'Recetas']];
+const TABS = [['hoy', 'Hoy'], ['reg', 'Registros'], ['plan', 'Plan de limpieza'], ['stock', 'Stock'], ['traza', 'Trazabilidad'], ['aler', 'Alérgenos'], ['rec', 'Recetas'], ['inf', 'Informes PDF']];
 function renderTabs() {
   const avisos = S.materias.filter(m => estadoStock(m) !== 'OK').length + proximosCaducar().length;
   const c = { hoy: S.alertas.filter(a => !a.correctora).length, stock: avisos };
@@ -530,6 +532,101 @@ function vReg() {
 }
 
 // ───────── Plan de limpieza ─────────
+// ───────── Informes en PDF para Sanidad ─────────
+S.inf = { desde: iso(addDays(hoy, -30)), hasta: HOY, sec: { temp: true, limp: true, rec: true, prod: true, traza: true, plan: true } };
+const SECCIONES = [['temp', 'Temperaturas y medidas correctoras'], ['limp', 'Limpieza y desinfección (con revisiones mensuales)'], ['rec', 'Recepción de mercancía (albaranes, lotes y caducidades)'], ['prod', 'Producción y lotes del día (materias primas usadas)'], ['traza', 'Trazabilidad: a qué clientes fue cada lote'], ['plan', 'Anexo: plan de limpieza y desinfección']];
+function vInf() {
+  const i = S.inf;
+  const rapido = (n, txt) => `<button class="chip" data-infrango="${n}">${txt}</button>`;
+  return `
+  <div class="head"><div><h1>Informes para Sanidad</h1><p class="sub">Elige las fechas y qué apartados quieres. Se descarga un PDF con todos los registros de ese periodo, listo para entregar o imprimir.</p></div></div>
+  <div class="grid2">
+    <div class="card"><h2>Periodo</h2>
+      <div class="chips" style="margin-bottom:10px">${rapido(7, 'Última semana')}${rapido(30, 'Último mes')}${rapido(90, 'Últimos 3 meses')}${rapido(365, 'Último año')}</div>
+      <div class="row" style="flex-wrap:nowrap">
+        <label class="f" style="flex:1">Desde<input id="inf-desde" type="date" value="${i.desde}" max="${HOY}"></label>
+        <label class="f" style="flex:1">Hasta<input id="inf-hasta" type="date" value="${i.hasta}" max="${HOY}"></label>
+      </div>
+      <p class="muted" style="margin:10px 0 0">En la demo solo hay datos de ejemplo de los últimos 7 días.</p>
+    </div>
+    <div class="card"><h2>Qué incluir</h2>
+      <div class="list">${SECCIONES.map(([k, t]) => `<label class="item" style="cursor:pointer"><input type="checkbox" data-infsec="${k}" ${i.sec[k] ? 'checked' : ''} style="width:20px;height:20px;flex-shrink:0"><span class="grow">${t}</span></label>`).join('')}</div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:16px"><button class="btn gold big" data-pdf style="flex:1;min-width:240px">📄 Descargar informe en PDF</button></div>`;
+}
+function diasEntre(a, b) { const r = []; for (let d = new Date(a + 'T12:00'); iso(d) <= b; d = addDays(d, 1)) r.push(iso(d)); return r; }
+function generarPDF() {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF) { toast('No se ha podido cargar el generador de PDF. Revisa la conexión.'); return; }
+  const { desde, hasta, sec } = S.inf;
+  if (desde > hasta) { toast('La fecha «desde» es posterior a «hasta»'); return; }
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth(); const morado = [46, 42, 92]; const dorado = [209, 165, 62];
+  const fd = f => new Date(f + 'T12:00').toLocaleDateString('es-ES');
+  const tabla = (head, body, extra = {}) => { doc.autoTable({ head: [head], body: body.length ? body : [[{ content: 'Sin registros en este periodo', colSpan: head.length, styles: { fontStyle: 'italic', textColor: 120 } }]], startY: (doc.lastAutoTable?.finalY || y) + 3, theme: 'grid', styles: { fontSize: 8, cellPadding: 1.6, valign: 'middle' }, headStyles: { fillColor: morado, textColor: 255 }, margin: { left: 14, right: 14 }, ...extra }); };
+  let y = 14;
+  const titulo = (t) => { let yy = (doc.lastAutoTable?.finalY || y) + 9; if (yy > 265) { doc.addPage(); doc.lastAutoTable = { finalY: 10 }; yy = 20; } doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(...morado); doc.text(t, 14, yy); doc.setDrawColor(...dorado); doc.setLineWidth(0.6); doc.line(14, yy + 1.5, 40, yy + 1.5); doc.lastAutoTable = { finalY: yy + 1 }; doc.setTextColor(0); };
+  // Portada / cabecera
+  doc.setFillColor(...morado); doc.rect(0, 0, W, 26, 'F'); doc.setFillColor(...dorado); doc.rect(0, 26, W, 1.2, 'F');
+  doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('Productos MariSol', 14, 12);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.text('Registros del sistema de autocontrol (APPCC)', 14, 19);
+  doc.setTextColor(0); doc.setFontSize(10);
+  doc.text(`Periodo: del ${fd(desde)} al ${fd(hasta)}`, 14, 36);
+  doc.text(`Generado el ${new Date().toLocaleString('es-ES')} por ${usuario()}`, 14, 42);
+  doc.setFontSize(8); doc.setTextColor(150, 60, 40); doc.text('DEMO con datos de ejemplo: no son registros reales.', 14, 48); doc.setTextColor(0);
+  doc.lastAutoTable = { finalY: 48 };
+  const dias = diasEntre(desde, hasta);
+  if (sec.temp) {
+    titulo('1. Temperaturas de los equipos de frío');
+    doc.setFontSize(8); doc.text('Rangos: cámara y frigoríficos entre 0 y 4 °C; congeladores a -18 °C o menos.', 14, doc.lastAutoTable.finalY + 5); doc.lastAutoTable.finalY += 6;
+    const filas = []; dias.forEach(f => S.equipos.forEach(e => S.lecturas[e.id].filter(([t]) => iso(new Date(t)) === f).forEach(([t, v, u]) => filas.push([fd(f), new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }), e.nombre, fNum(v, 1) + ' °C', fueraRango(e, v) ? 'FUERA DE RANGO' : 'Correcta', u || 'Sensor']))));
+    tabla(['Fecha', 'Hora', 'Equipo', 'Temperatura', 'Estado', 'Registrado por'], filas, { didParseCell: d => { if (d.section === 'body' && d.column.index === 4 && d.cell.raw === 'FUERA DE RANGO') { d.cell.styles.textColor = [181, 46, 30]; d.cell.styles.fontStyle = 'bold'; } } });
+    const al = S.alertas.filter(a => { const f = iso(new Date(a.desde)); return f >= desde && f <= hasta; });
+    titulo('Incidencias de temperatura y medidas correctoras');
+    tabla(['Fecha y hora', 'Equipo', 'Temperatura', 'Medida correctora', 'Responsable'], al.map(a => [new Date(a.desde).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }), S.equipos.find(x => x.id === a.equipoId).nombre, fNum(a.peor, 1) + ' °C', a.correctora || 'PENDIENTE', a.user || '']));
+  }
+  if (sec.limp) {
+    titulo('2. Limpieza y desinfección');
+    const filas = []; dias.forEach(f => tareasDia(f).forEach(t => { const i = incid(t.id, f); filas.push([fd(f), t.nombre, i ? 'NO REALIZADA' : 'Realizada según el plan', i ? i.motivo + ' (' + i.user + ')' : '']); }));
+    tabla(['Fecha', 'Qué', 'Estado', 'Observaciones'], filas, { didParseCell: d => { if (d.section === 'body' && d.column.index === 2 && d.cell.raw === 'NO REALIZADA') { d.cell.styles.textColor = [181, 46, 30]; d.cell.styles.fontStyle = 'bold'; } } });
+    titulo('Revisiones mensuales del plan (verificación)');
+    const vs = S.verificaciones.filter(v => v.fecha >= desde && v.fecha <= hasta);
+    tabla(['Mes revisado', 'Fecha de firma', 'Responsable', 'Observaciones'], vs.map(v => [new Date(v.mes + '-15').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }), fd(v.fecha), v.user, v.obs]));
+  }
+  if (sec.rec) {
+    titulo('3. Recepción de mercancía');
+    const filas = []; S.recepciones.filter(r => r.fecha >= desde && r.fecha <= hasta).forEach(r => r.lineas.forEach(l => filas.push([fd(r.fecha), r.proveedor, r.albaran, mat(l.materiaId).nombre, fNum(l.cantidad) + ' ' + mat(l.materiaId).unidad, l.lote, l.caducidad ? fd(l.caducidad) : '', l.temp === '' || l.temp == null ? '-' : l.temp + ' °C', l.estado + (l.motivo ? ': ' + l.motivo : ''), r.user])));
+    tabla(['Fecha', 'Proveedor', 'Albarán', 'Producto', 'Cantidad', 'Lote', 'Caducidad', 'T.ª', 'Estado', 'Recibió'], filas, { styles: { fontSize: 7, cellPadding: 1.3 } });
+  }
+  if (sec.prod) {
+    titulo('4. Producción y lotes');
+    const filas = []; S.producciones.filter(p => p.fecha >= desde && p.fecha <= hasta).forEach(p => {
+      const usados = {}; p.consumos.forEach(c => { const l = S.lotes.find(x => x.id === c.loteId); const k = mat(l.materiaId).nombre + ' (lote ' + l.lote + ')'; usados[k] = (usados[k] || 0) + c.cantidad; });
+      filas.push([fd(p.fecha), p.lote, p.items.map(i => i.producto + ' x' + i.uds).join(', '), Object.entries(usados).map(([k, q]) => k + ': ' + fNum(q)).join('; '), p.user]);
+    });
+    tabla(['Fecha', 'Lote', 'Productos fabricados', 'Materias primas usadas (lote: cantidad)', 'Registró'], filas, { styles: { fontSize: 7, cellPadding: 1.3 }, columnStyles: { 2: { cellWidth: 45 }, 3: { cellWidth: 70 } } });
+  }
+  if (sec.traza) {
+    titulo('5. Trazabilidad hacia delante (clientes)');
+    doc.setFontSize(8); doc.text('Venta directa al consumidor final en mostrador: exenta de registro de destino.', 14, doc.lastAutoTable.finalY + 5); doc.lastAutoTable.finalY += 6;
+    const filas = S.salidas.filter(s => s.fecha >= desde && s.fecha <= hasta && !/mostrador/i.test(s.cliente)).map(s => [fd(s.fecha), loteProd(s.fecha), s.cliente, s.items.map(([p, u]) => p + ' x' + u).join(', ')]);
+    tabla(['Fecha', 'Lote', 'Cliente', 'Productos'], filas);
+  }
+  if (sec.plan) {
+    titulo('Anexo. Plan de limpieza y desinfección');
+    const cada = t => t.cada === 1 ? 'Diaria' : t.cada === 14 ? 'Cada 2 semanas' : t.cada === 30 ? 'Mensual' : t.cada === 60 ? 'Cada 2 meses' : 'Cada ' + t.cada + ' días';
+    tabla(['Qué', 'Frecuencia', 'Producto', 'Procedimiento'], S.tareas.map(t => [t.nombre, cada(t), t.producto, t.como]), { styles: { fontSize: 7, cellPadding: 1.3 }, columnStyles: { 3: { cellWidth: 85 } } });
+  }
+  // Firma y numeración
+  let yf = (doc.lastAutoTable?.finalY || 50) + 18; if (yf > 270) { doc.addPage(); yf = 30; }
+  doc.setFontSize(9); doc.setDrawColor(120); doc.line(14, yf, 84, yf); doc.text('Firma del responsable', 14, yf + 5);
+  const n = doc.getNumberOfPages();
+  for (let p = 1; p <= n; p++) { doc.setPage(p); doc.setFontSize(7); doc.setTextColor(120); doc.text(`Productos MariSol · Registros APPCC ${fd(desde)} - ${fd(hasta)} · Página ${p} de ${n}`, W / 2, 290, { align: 'center' }); }
+  doc.save(`APPCC-MariSol-${desde}_a_${hasta}.pdf`);
+  toast('Informe descargado');
+}
+
 function vPlan() {
   const cada = t => t.cada === 1 ? 'Todos los días' : t.cada === 14 ? 'Cada 2 semanas' : t.cada === 30 ? 'Una vez al mes' : t.cada === 60 ? 'Cada 2 meses' : 'Cada ' + t.cada + ' días';
   return `
@@ -633,7 +730,7 @@ function vAler() {
 
 
 
-const VISTAS = { hoy: vHoy, reg: vReg, plan: vPlan, stock: vStock, rec: vRec, traza: vTraza, aler: vAler };
+const VISTAS = { hoy: vHoy, reg: vReg, plan: vPlan, stock: vStock, rec: vRec, traza: vTraza, aler: vAler, inf: vInf };
 // Los cambios en campos se dibujan un instante después, para no chocar con un clic en curso
 let renderT; function renderLater() { clearTimeout(renderT); renderT = setTimeout(render, 0); }
 function render() { clearTimeout(renderT); renderTabs(); $('#main').innerHTML = `<div class="fade">${VISTAS[S.tab]()}</div>`; }
@@ -641,10 +738,12 @@ function render() { clearTimeout(renderT); renderTabs(); $('#main').innerHTML = 
 // ───────── Eventos ─────────
 function leerTemps() { document.querySelectorAll('[data-tval]').forEach(el => { const v = parseFloat(String(el.value).replace(',', '.')); if (!isNaN(v)) S.tempDraft[el.dataset.tval].v = v; }); }
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-tab],[data-go],[data-hoy],[data-albrech],[data-rsel],[data-ridel],[data-radd],[data-cartel],[data-acorr],[data-nohecho],[data-guardarmotivo],[data-deshacer],[data-verif],[data-tstep],[data-guardartemps]');
+  const t = e.target.closest('[data-tab],[data-go],[data-hoy],[data-albrech],[data-rsel],[data-ridel],[data-radd],[data-cartel],[data-acorr],[data-nohecho],[data-guardarmotivo],[data-deshacer],[data-verif],[data-tstep],[data-guardartemps],[data-infrango],[data-pdf]');
   if (!t) return;
   const ds = t.dataset;
   if (ds.tab) return go(ds.tab);
+  if (ds.infrango) { S.inf.desde = iso(addDays(hoy, -Number(ds.infrango))); S.inf.hasta = HOY; return render(); }
+  if (ds.pdf !== undefined) return generarPDF();
   if (ds.go) return go(ds.go);
   if (ds.tstep) { leerTemps(); const d = S.tempDraft[ds.tstep]; d.v = Math.round((d.v + Number(ds.d)) * 10) / 10; return render(); }
   if (ds.guardartemps !== undefined) {
@@ -690,6 +789,8 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'usr') { if (S.tab === 'rec' && !esAdmin()) toast('Las recetas solo las ven los administradores'); return render(); }
+  if (t.id === 'inf-desde' || t.id === 'inf-hasta') { S.inf[t.id === 'inf-desde' ? 'desde' : 'hasta'] = t.value; return; }
+  if (t.dataset.infsec) { S.inf.sec[t.dataset.infsec] = t.checked; return; }
   if (t.dataset.tval) { leerTemps(); return renderLater(); }
   if (t.dataset.tcorr) { S.tempDraft[t.dataset.tcorr].c = t.value; return; }
   if (t.dataset.alb !== undefined) { S.alb.lineas[Number(t.dataset.alb)][t.dataset.k] = t.value; return renderLater(); }
