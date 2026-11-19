@@ -11,6 +11,7 @@ import ProveedoresPage from './pages/ProveedoresPage'
 import ComparadorPage from './pages/ComparadorPage'
 import UsuariosPage from './pages/UsuariosPage'
 import ProduccionPage from './pages/ProduccionPage'
+import AppccDemoPage from './pages/AppccDemoPage'
 
 function Cargando() {
   return <p style={{ padding: 40, textAlign: 'center', color: '#888' }}>Cargando...</p>
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="proveedores" element={<ProveedoresPage />} />
         <Route path="comparador" element={<ComparadorPage />} />
         <Route path="produccion" element={<ProduccionPage />} />
+        <Route path="appcc" element={<AdminRoute><AppccDemoPage /></AdminRoute>} />
         <Route path="usuarios" element={<AdminRoute><UsuariosPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

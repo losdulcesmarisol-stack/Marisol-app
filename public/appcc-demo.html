@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>APPCC MariSol (prueba)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+body { margin: 0; }
+.embebida header.top .topin .brand { display: none; }
+.embebida header.top { position: static; }
+
+/* Layout: la misma app de Productos MariSol (barra morada con filo dorado, fondo crema) con un módulo nuevo de APPCC, stock y trazabilidad.
+   Tema único y claro a propósito, igual que la app real. */
+:root {
+  --bg: #f9f4e8; --sur: #fffdf8; --sur2: #fbf7ee; --sur3: #f1eadb;
+  --bor: #eadfc6; --bor2: #d9c79c;
+  --pur: #2e2a5c; --purl: #46407f; --purd: #1f1c42; --purbg: #efedf6;
+  --gold: #d1a53e; --goldl: #e6c46f; --goldd: #a8801f; --choc: #3a2519;
+  --txt: #2b1d14; --txt2: #6b5848; --txt3: #9a8670;
+  --ok: #2a7a48; --okbg: #e6f2ea; --err: #b52e1e; --errbg: #f8e6e3; --wrn: #a5620c; --wrnbg: #fbefd9;
+  --serif: 'IM Fell English', Georgia, 'Times New Roman', serif;
+  --sans: 'Source Sans 3', 'Source Sans Pro', Helvetica, Arial, sans-serif;
+  --r: 10px; --rl: 14px;
+  --sh: 0 2px 14px rgba(58,37,25,.07);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--txt); }
+body { font-family: var(--sans); font-size: 15px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--purd); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.demo { background: var(--gold); color: var(--choc); text-align: center; font-size: 13px; font-weight: 600; padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: linear-gradient(90deg, var(--purd), var(--pur) 55%, var(--purd)); border-bottom: 3px solid var(--gold); color: #fff; }
+.topin { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); flex-wrap: wrap; }
+.brand { font-family: var(--serif); font-size: 21px; white-space: nowrap; }
+.brand small { display: block; font-family: var(--sans); font-size: 10px; letter-spacing: 2px; color: var(--goldl); text-transform: uppercase; }
+.who { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.who select { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 20px; padding: 4px 10px; }
+.who select option { color: var(--txt); }
+nav.tabs { max-width: 1200px; margin: 0 auto; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+nav.tabs::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; background: transparent; border: 1px solid transparent; color: rgba(255,255,255,.8); border-radius: 8px; padding: 7px 12px; font-size: 14px; font-weight: 600; white-space: nowrap; position: relative; }
+.tab:hover { background: rgba(255,255,255,.1); color: #fff; }
+.tab[aria-selected="true"] { background: rgba(209,165,62,.16); color: var(--goldl); border-color: rgba(209,165,62,.55); }
+.tab .dot { position: absolute; top: 2px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #d43a22; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+
+main { max-width: 1200px; margin: 0 auto; padding-block: 22px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-family: var(--serif); font-weight: 400; color: var(--pur); font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+h1::after { content: ''; display: block; width: 48px; height: 3px; background: var(--gold); border-radius: 2px; margin-top: 6px; }
+h2 { font-family: var(--serif); font-weight: 400; color: var(--pur); font-size: 21px; margin: 0; }
+.sub { color: var(--txt2); font-size: 14px; margin: 6px 0 0; max-width: 70ch; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.stack { display: grid; gap: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.card { background: var(--sur); border: 1px solid var(--bor); border-radius: var(--rl); padding: 16px; box-shadow: var(--sh); min-width: 0; }
+.card > h2 { padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--bor); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tile { background: var(--sur); border: 1px solid var(--bor); border-top: 3px solid var(--gold); border-radius: var(--rl); padding: 14px; box-shadow: var(--sh); display: grid; gap: 4px; text-align: left; }
+.tile .n { font-size: 28px; font-weight: 700; color: var(--choc); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.tile .l { font-size: 11px; color: var(--txt3); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.tile.go { cursor: pointer; }
+.tile.go:hover { border-color: var(--bor2); }
+.tile.alert { border-top-color: var(--err); }
+.tile.alert .n { color: var(--err); }
+.tile.okk { border-top-color: var(--ok); }
+.tile.okk .n { color: var(--ok); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: var(--r); padding: 9px 16px; font-weight: 600; font-size: 14px; background: var(--pur); color: #fff; }
+.btn:hover { background: var(--purl); }
+.btn.gold { background: linear-gradient(180deg, var(--goldl), var(--gold)); color: var(--choc); border: 1px solid var(--goldd); }
+.btn.ghost { background: transparent; color: var(--txt2); border: 1.5px solid var(--bor2); }
+.btn.ghost:hover { color: var(--pur); border-color: var(--pur); }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+.btn.danger { background: var(--errbg); color: var(--err); border: 1px solid rgba(181,46,30,.25); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+input, select, textarea { background: var(--sur2); border: 1.5px solid var(--bor); border-radius: var(--r); padding: 8px 10px; width: 100%; min-width: 0; }
+input:focus, select:focus, textarea:focus { border-color: var(--pur); background: #fff; outline: none; }
+label.f { display: grid; gap: 4px; font-size: 11px; font-weight: 700; color: var(--txt2); text-transform: uppercase; letter-spacing: 1px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.muted { color: var(--txt3); font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill.ok { background: var(--okbg); color: var(--ok); }
+.pill.err { background: var(--errbg); color: var(--err); }
+.pill.wrn { background: var(--wrnbg); color: var(--wrn); }
+.pill.gr { background: var(--sur3); color: var(--txt2); }
+.pill.pu { background: var(--purbg); color: var(--pur); }
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: var(--pur); color: #fff; text-align: left; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 8px 10px; border-bottom: 2px solid var(--gold); white-space: nowrap; }
+th:first-child { border-radius: 8px 0 0 0; } th:last-child { border-radius: 0 8px 0 0; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--bor); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+td input, td select { padding: 6px 8px; }
+.list { display: grid; gap: 8px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--bor); border-radius: var(--r); background: var(--sur2); flex-wrap: wrap; }
+.item .grow { flex: 1; min-width: 160px; }
+.item.done { background: var(--okbg); border-color: rgba(42,122,72,.25); }
+.check { width: 26px; height: 26px; border-radius: 7px; border: 2px solid var(--bor2); background: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0; }
+.item.done .check { background: var(--ok); border-color: var(--ok); }
+.equip { display: grid; gap: 10px; }
+.equip .big { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--choc); line-height: 1; }
+.equip .range { font-size: 13px; color: var(--txt2); }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; align-items: stretch; }
+.step { border: 1px solid var(--bor); border-radius: var(--rl); background: var(--sur); padding: 14px; display: grid; gap: 8px; align-content: start; position: relative; }
+.step .k { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--goldd); }
+.mat { display: grid; grid-template-columns: repeat(14, minmax(34px, 1fr)); }
+.al { text-align: center; }
+.al span { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--err); }
+.al.no span { background: transparent; border: 1.5px solid var(--bor); }
+.vhead { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; padding: 8px 4px; font-size: 11px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--pur); color: #fff; border-bottom: 3px solid var(--gold); padding: 11px 18px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); font-weight: 600; z-index: 50; max-width: calc(100% - 32px); }
+.note { background: var(--sur3); border: 1px dashed var(--bor2); border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--txt2); }
+.warnbox { background: var(--errbg); border: 1px solid rgba(181,46,30,.25); color: var(--err); border-radius: var(--r); padding: 10px 12px; font-size: 14px; }
+.okbox { background: var(--okbg); border: 1px solid rgba(42,122,72,.25); color: var(--ok); border-radius: var(--r); padding: 10px 12px; font-size: 14px; }
+.upload { border: 2px dashed var(--bor2); border-radius: var(--rl); padding: 22px; text-align: center; background: var(--sur2); display: grid; gap: 8px; justify-items: center; }
+.cartel { background: #fff; border: 2px solid var(--pur); border-radius: var(--rl); padding: 18px; }
+.cartel h3 { font-family: var(--serif); font-weight: 400; font-size: 26px; color: var(--pur); margin: 0 0 4px; text-align: center; }
+.paso { display: grid; gap: 4px; }
+.paso.done { background: var(--okbg); border-color: rgba(42,122,72,.25); padding-block: 12px; }
+.pnum { width: 34px; height: 34px; border-radius: 50%; background: var(--pur); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.pnum.ok { background: var(--ok); }
+.btn.big { padding: 13px 18px; font-size: 16px; margin-top: 4px; }
+.prog { display: grid; gap: 6px; min-width: 160px; font-size: 14px; color: var(--txt2); }
+.prog .bar { height: 10px; border-radius: 6px; background: var(--sur3); overflow: hidden; }
+.prog .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--ok)); transition: width .3s; }
+.okbox.big { font-size: 17px; font-weight: 700; text-align: center; padding: 14px; }
+.trows { display: grid; gap: 8px; margin-bottom: 10px; }
+.trow { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--bor); border-radius: var(--r); background: var(--sur2); }
+.trow.mal { border-color: rgba(181,46,30,.4); background: var(--errbg); }
+.trow .tname { display: grid; min-width: 0; }
+.trow .corr { grid-column: 1 / -1; color: var(--err); }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper button { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid var(--bor2); background: #fff; font-size: 22px; font-weight: 700; color: var(--pur); }
+.stepper input { width: 74px; text-align: center; font-size: 20px; font-weight: 700; padding: 6px; }
+.stepper span { color: var(--txt3); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chip { border: 1.5px solid var(--bor2); background: #fff; color: var(--txt2); border-radius: 20px; padding: 8px 12px; font-size: 14px; font-weight: 600; }
+.chip.on { background: var(--okbg); border-color: rgba(42,122,72,.4); color: var(--ok); }
+.chip small { font-weight: 400; opacity: .8; }
+.albhead { display: grid; margin: 10px 0 8px; }
+.alblist { display: grid; gap: 6px; }
+.albl { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--bor); border-radius: var(--r); background: var(--sur2); flex-wrap: wrap; }
+.albl .grow { flex: 1; min-width: 180px; }
+.albl.rech { background: var(--errbg); text-decoration: line-through; text-decoration-color: rgba(181,46,30,.5); }
+@media (max-width: 640px) { .trow { grid-template-columns: 1fr; } }
+.sens { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sen { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid rgba(42,122,72,.25); background: var(--okbg); border-radius: var(--r); }
+.sen .sn { font-weight: 700; font-size: 14px; }
+.sen .sv { font-size: 24px; font-weight: 700; color: var(--choc); font-variant-numeric: tabular-nums; }
+.sen.mal { background: var(--errbg); border-color: rgba(181,46,30,.4); }
+.sen.mal .sv { color: var(--err); }
+.alertcard { border: 2px solid var(--err); background: var(--errbg); }
+.lotebig { font-size: 30px; font-weight: 700; color: var(--pur); letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+.normas { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; }
+@media (max-width: 640px) {
+  h1 { font-size: 27px; }
+  .brand { font-size: 18px; }
+  .who { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) { .fade { animation: fade .18s ease; } @keyframes fade { from { opacity: .4; transform: translateY(3px); } to { opacity: 1; transform: none; } } }
+</style>
+
+</head>
+<body>
+<div class="demo">DEMO del módulo APPCC · datos de ejemplo · no se guarda nada en vuestra base de datos</div>
+<header class="top">
+  <div class="topin">
+    <div class="brand">Productos MariSol<small>APPCC automático</small></div>
+    <div class="who"><label for="usr">Apunta:</label>
+      <select id="usr"><option value="Marisol">Marisol (administradora)</option><option value="Empleado mañana">Empleado mañana</option><option value="Empleado noche">Empleado noche</option></select>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+</header>
+<main id="main"></main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+'use strict';
+// ───────── Utilidades ─────────
+const $ = s => document.querySelector(s);
+const hoy = new Date(); hoy.setHours(12,0,0,0);
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const iso = d => { const x = new Date(d); return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0'); };
+const HOY = iso(hoy);
+const fFecha = s => new Date(s + 'T12:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+const fCorta = s => new Date(s + 'T12:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+const fNum = (n, dec = 2) => Number(n).toLocaleString('es-ES', { maximumFractionDigits: dec, minimumFractionDigits: 0 });
+const hora = () => new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const uid = (() => { let i = 1000; return p => p + (++i); })();
+// Lote de panadería = fecha de fabricación en 8 cifras (ddmmaaaa), como pide la normativa
+const loteProd = fecha => fecha.slice(8, 10) + fecha.slice(5, 7) + fecha.slice(0, 4);
+const usuario = () => $('#usr').value;
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+function diasHasta(fecha) { return Math.round((new Date(fecha + 'T12:00') - hoy) / 86400000); }
+
+// ───────── Datos de ejemplo ─────────
+const ALERGENOS = ['Gluten','Crustáceos','Huevos','Pescado','Cacahuetes','Soja','Leche','Frutos de cáscara','Apio','Mostaza','Sésamo','Sulfitos','Altramuces','Moluscos'];
+
+const S = {
+  materias: [
+    { id: 'm1', nombre: 'Harina de trigo panificable', unidad: 'kg', minimo: 300, alergenos: ['Gluten'] },
+    { id: 'm2', nombre: 'Harina integral de trigo', unidad: 'kg', minimo: 50, alergenos: ['Gluten'] },
+    { id: 'm3', nombre: 'Levadura fresca', unidad: 'kg', minimo: 4, alergenos: [] },
+    { id: 'm4', nombre: 'Sal', unidad: 'kg', minimo: 10, alergenos: [] },
+    { id: 'm5', nombre: 'Masa madre', unidad: 'kg', minimo: 5, alergenos: ['Gluten'] },
+    { id: 'm6', nombre: 'Huevos', unidad: 'ud', minimo: 180, alergenos: ['Huevos'] },
+    { id: 'm7', nombre: 'Azúcar', unidad: 'kg', minimo: 25, alergenos: [] },
+    { id: 'm8', nombre: 'Aceite de oliva', unidad: 'L', minimo: 10, alergenos: [] },
+    { id: 'm9', nombre: 'Leche entera', unidad: 'L', minimo: 10, alergenos: ['Leche'] },
+    { id: 'm10', nombre: 'Anís en grano', unidad: 'kg', minimo: 1, alergenos: [] },
+  ],
+  lotes: [], recepciones: [], producciones: [], salidas: [],
+  recetas: {
+    // cantidades por unidad de producto. SON DE EJEMPLO: las reales las ponéis vosotros.
+    'BARRA': [['m1', 0.165], ['m3', 0.003], ['m4', 0.003]],
+    'BARRETA': [['m1', 0.12], ['m3', 0.0022], ['m4', 0.0022]],
+    'PAN DE 1/2': [['m1', 0.33], ['m3', 0.006], ['m4', 0.006]],
+    'PAN DE 1/4': [['m1', 0.165], ['m3', 0.003], ['m4', 0.003]],
+    'PAN DE KILO': [['m1', 0.66], ['m3', 0.012], ['m4', 0.012]],
+    'INTEGRAL': [['m2', 0.17], ['m1', 0.03], ['m3', 0.003], ['m4', 0.003]],
+    'BARRA DE MASA MADRE': [['m1', 0.15], ['m5', 0.05], ['m4', 0.003]],
+    'MAGDALENAS': [['m1', 0.12], ['m6', 2], ['m7', 0.11], ['m8', 0.09], ['m9', 0.05]],
+    'ROSQUILLAS GRANDES': [['m1', 0.1], ['m6', 1], ['m7', 0.06], ['m8', 0.05], ['m10', 0.002]],
+  },
+  productos: ['BARRA','BARRETA','PAN DE 1/2','PAN DE 1/4','PAN DE KILO','INTEGRAL','BARRA DE MASA MADRE','MAGDALENAS','ROSQUILLAS GRANDES','BIZCOCHO'],
+  equipos: [
+    { id: 'e1', nombre: 'Cámara de frío', tipo: 'frio', min: 0, max: 4, base: 2.3 },
+    { id: 'e2', nombre: 'Frigorífico 1', tipo: 'frio', min: 0, max: 4, base: 2.9 },
+    { id: 'e3', nombre: 'Frigorífico 2', tipo: 'frio', min: 0, max: 4, base: 3.1 },
+    { id: 'e4', nombre: 'Congelador 1', tipo: 'cong', min: -60, max: -18, base: -20.6 },
+    { id: 'e5', nombre: 'Congelador 2', tipo: 'cong', min: -60, max: -18, base: -21.2 },
+    { id: 'e6', nombre: 'Congelador 3', tipo: 'cong', min: -60, max: -18, base: -19.8 },
+    { id: 'e7', nombre: 'Congelador 4', tipo: 'cong', min: -60, max: -18, base: -20.9 },
+  ],
+  lecturas: {},   // lo que mandaría cada sensor: [hora en ms, °C]
+  alertas: [],
+  // Plan de limpieza de Marisol (cada: días entre limpiezas)
+  tareas: [
+    { id: 't1', nombre: 'Amasadoras', cada: 1, desde: 0, producto: 'Detergente desengrasante de uso alimentario + desinfectante con registro HA', como: 'Desconectar. Quitar restos de masa con rasqueta. Lavar con agua caliente y detergente. Aclarar. Desinfectar a la dosis de la etiqueta. Aclarar con agua potable y secar.' },
+    { id: 't2', nombre: 'Utensilios', cada: 1, desde: 0, producto: 'Detergente de uso alimentario + desinfectante HA (o lavavajillas a alta temperatura)', como: 'Quitar restos. Lavar con agua caliente y detergente. Aclarar. Desinfectar. Aclarar con agua potable y dejar secar al aire.' },
+    { id: 't3', nombre: 'Suelos', cada: 1, desde: 0, producto: 'Desinfectante HA para suelos', como: 'Al terminar todo lo demás. Barrer o aspirar. Fregar con agua caliente y desinfectante a la dosis de la etiqueta. Dejar secar al aire.' },
+    { id: 't4', nombre: 'Vitrinas', cada: 1, desde: 0, producto: 'Detergente de uso alimentario + desinfectante HA', como: 'Sin producto dentro. Lavar con detergente. Aclarar. Desinfectar. Aclarar y secar con papel de un solo uso.' },
+    { id: 't5', nombre: 'Bandejas', cada: 1, desde: 0, producto: 'Detergente desengrasante de uso alimentario', como: 'Rascar restos. Lavar con agua caliente y desengrasante. Aclarar con agua potable y secar.' },
+    { id: 't6', nombre: 'Hornos', cada: 14, desde: 3, producto: 'Desengrasante para hornos de uso alimentario', como: 'En frío y apagado. Aplicar el desengrasante el tiempo que diga la etiqueta. Retirar la suciedad. Aclarar muy bien con agua y secar.' },
+    { id: 't7', nombre: 'Frigoríficos 1 y 2', cada: 30, desde: 9, producto: 'Detergente de uso alimentario + desinfectante HA', como: 'Pasar el género a otro equipo. Desconectar. Lavar con detergente y agua templada. Aclarar. Desinfectar. Aclarar, secar y conectar. Esperar a que enfríe antes de volver a llenar.' },
+    { id: 't8', nombre: 'Congeladores 1 a 4', cada: 30, desde: 16, producto: 'Detergente de uso alimentario + desinfectante HA', como: 'Pasar el género a otro congelador. Desconectar y dejar que se suelte el hielo. Quitarlo con pala de plástico. Lavar con detergente y agua caliente. Aclarar. Desinfectar. Aclarar, secar y conectar.' },
+    { id: 't9', nombre: 'Cámara de frío', cada: 30, desde: 23, porConfirmar: true, producto: 'Detergente de uso alimentario + desinfectante HA', como: 'Igual que los frigoríficos: vaciar, lavar, aclarar, desinfectar, aclarar y secar antes de volver a llenar.' },
+    { id: 't10', nombre: 'Paredes, puertas y ventanas', cada: 60, desde: 40, producto: 'Detergente de uso alimentario + desinfectante HA', como: 'Sin alimentos al descubierto. De arriba abajo. Lavar con detergente, aclarar y desinfectar las zonas cercanas a donde se trabaja la masa.' },
+  ],
+  incidLimp: [],  // limpiezas que NO se hicieron (solo se apunta esto)
+  verificaciones: [],
+  tab: 'hoy',
+  draftRecep: null,
+  prodForm: null,
+  recetaSel: 'BARRA',
+  trazaSel: null,
+  verCartel: false,
+};
+const mat = id => S.materias.find(m => m.id === id);
+
+function crearLote(materiaId, cantidad, lote, caducidad, recepcionId, fecha) {
+  const l = { id: uid('l'), materiaId, cantidad, restante: cantidad, lote, caducidad, recepcionId, fecha };
+  S.lotes.push(l); return l;
+}
+function crearRecepcion(fecha, proveedor, albaran, lineas, user) {
+  const r = { id: uid('r'), fecha, proveedor, albaran, user, lineas };
+  S.recepciones.push(r);
+  lineas.filter(x => x.estado === 'Aceptado').forEach(x => x.loteId = crearLote(x.materiaId, x.cantidad, x.lote, x.caducidad, r.id, fecha).id);
+  return r;
+}
+// Consumo FIFO: primero el lote que antes caduca
+function calcularConsumos(items) {
+  const necesidad = {}; const sinReceta = [];
+  items.forEach(({ producto, uds }) => {
+    if (!uds) return;
+    const rec = S.recetas[producto];
+    if (!rec || !rec.length) { sinReceta.push(producto); return; }
+    rec.forEach(([m, q]) => necesidad[m] = (necesidad[m] || 0) + q * uds);
+  });
+  const consumos = []; const faltas = [];
+  Object.entries(necesidad).forEach(([m, total]) => {
+    let resto = total;
+    const lotes = S.lotes.filter(l => l.materiaId === m && l.restante > 0.0001).sort((a, b) => a.caducidad.localeCompare(b.caducidad));
+    for (const l of lotes) { if (resto <= 0) break; const q = Math.min(l.restante, resto); consumos.push({ loteId: l.id, materiaId: m, cantidad: q }); resto -= q; }
+    if (resto > 0.0001) faltas.push({ materiaId: m, falta: resto });
+  });
+  return { necesidad, consumos, faltas, sinReceta };
+}
+function registrarProduccion(fecha, items, user) {
+  const c = calcularConsumos(items);
+  c.consumos.forEach(x => { S.lotes.find(l => l.id === x.loteId).restante -= x.cantidad; });
+  const p = { id: uid('p'), fecha, lote: loteProd(fecha), items: items.filter(i => i.uds > 0), consumos: c.consumos, faltas: c.faltas, sinReceta: c.sinReceta, user };
+  S.producciones.push(p); return p;
+}
+
+// Historial de ejemplo
+(function seed() {
+  const d = n => iso(addDays(hoy, n));
+  crearRecepcion(d(-12), 'Harinas del Júcar (ejemplo)', 'AB-4471', [
+    { materiaId: 'm1', cantidad: 625, lote: 'HJ-2610-21', caducidad: d(160), temp: '', estado: 'Aceptado' },
+    { materiaId: 'm2', cantidad: 100, lote: 'HJ-2610-09', caducidad: d(70), temp: '', estado: 'Aceptado' },
+  ], 'Marisol');
+  crearRecepcion(d(-6), 'Distribuciones La Mancha (ejemplo)', '2026/1182', [
+    { materiaId: 'm3', cantidad: 10, lote: 'LV-8812', caducidad: d(9), temp: '3', estado: 'Aceptado' },
+    { materiaId: 'm4', cantidad: 25, lote: 'SM-0526', caducidad: d(700), temp: '', estado: 'Aceptado' },
+    { materiaId: 'm6', cantidad: 360, lote: 'ES-3-CU-114', caducidad: d(19), temp: '7', estado: 'Aceptado' },
+    { materiaId: 'm7', cantidad: 50, lote: 'AZ-2209', caducidad: d(400), temp: '', estado: 'Aceptado' },
+    { materiaId: 'm8', cantidad: 20, lote: 'AO-24-77', caducidad: d(300), temp: '', estado: 'Aceptado' },
+    { materiaId: 'm9', cantidad: 24, lote: 'LE-61104', caducidad: d(5), temp: '4', estado: 'Aceptado' },
+    { materiaId: 'm9', cantidad: 6, lote: 'LE-61102', caducidad: d(-1), temp: '9', estado: 'Rechazado', motivo: 'Llegó a 9 °C' },
+    { materiaId: 'm10', cantidad: 2, lote: 'AN-117', caducidad: d(500), temp: '', estado: 'Aceptado' },
+    { materiaId: 'm5', cantidad: 12, lote: 'MM-propia', caducidad: d(6), temp: '4', estado: 'Aceptado' },
+  ], 'Empleado mañana');
+  const clientes = ['Bar La Plaza (ejemplo)', 'Restaurante El Puente (ejemplo)', 'Colegio San José (ejemplo)', 'Venta en mostrador'];
+  for (let k = 5; k >= 1; k--) {
+    const f = d(-k);
+    const items = [ { producto: 'BARRA', uds: 140 + k * 3 }, { producto: 'BARRETA', uds: 180 + k * 4 }, { producto: 'PAN DE 1/2', uds: 6 }, { producto: 'INTEGRAL', uds: 7 }, { producto: 'BARRA DE MASA MADRE', uds: 10 } ];
+    if (k % 2) items.push({ producto: 'MAGDALENAS', uds: 24 }, { producto: 'ROSQUILLAS GRANDES', uds: 12 });
+    registrarProduccion(f, items, k % 2 ? 'Empleado noche' : 'Marisol');
+    S.salidas.push({ fecha: f, cliente: clientes[0], items: [['BARRA', 40], ['BARRETA', 30]] });
+    S.salidas.push({ fecha: f, cliente: clientes[1], items: [['BARRETA', 60], ['BARRA DE MASA MADRE', 4]] });
+    S.salidas.push({ fecha: f, cliente: clientes[2], items: [['BARRA', 50], ['PAN DE 1/2', 6]] });
+    if (k % 2) S.salidas.push({ fecha: f, cliente: clientes[0], items: [['MAGDALENAS', 12]] });
+    S.salidas.push({ fecha: f, cliente: clientes[3], items: [['BARRA', 50], ['BARRETA', 90], ['INTEGRAL', 7]] });
+  }
+  // Hasta que lleguen los sensores: una lectura al día, mirada por una persona
+  let sem = 11; const rnd = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  S.equipos.forEach(e => { S.lecturas[e.id] = []; });
+  for (let k = 6; k >= 1; k--) {
+    const t0 = new Date(d(-k) + 'T08:05').getTime();
+    S.equipos.forEach((e, i) => S.lecturas[e.id].push([t0 + i * 20000, Math.round((e.base + (rnd() - 0.5) * 0.8) * 10) / 10, 'Empleado mañana']));
+  }
+  // Un susto de ejemplo hace 3 días: puerta del congelador 3 mal cerrada
+  const e6 = S.lecturas.e6; e6[3][1] = -15.5;
+  S.alertas.push({ id: uid('a'), equipoId: 'e6', desde: e6[3][0], hasta: e6[3][0], peor: -15.5, correctora: 'Puerta mal cerrada: se cierra y a las 08:40 marca -19,2 °C', user: 'Empleado mañana', resuelta: true });
+  S.incidLimp.push({ tareaId: 't5', fecha: d(-2), motivo: 'Se hizo a la mañana siguiente (faltó tiempo)', user: 'Empleado noche' });
+  S.verificaciones.push({ mes: iso(addDays(hoy, -30)).slice(0, 7), fecha: d(-30 + 2), user: 'Marisol', obs: 'Todo correcto' });
+  // Producción de hoy: se guardó la hoja de producción y el lote se creó solo
+  registrarProduccion(HOY, Object.entries({ 'BARRA': 141, 'BARRETA': 190, 'PAN DE 1/2': 5, 'PAN DE 1/4': 8, 'PAN DE KILO': 11, 'INTEGRAL': 7, 'BARRA DE MASA MADRE': 10 }).map(([producto, uds]) => ({ producto, uds })), 'Empleado noche');
+  S.producciones[S.producciones.length - 1].hora = '05:40';
+  S.salidas.push({ fecha: HOY, cliente: 'Bar La Plaza (ejemplo)', items: [['BARRA', 40], ['BARRETA', 30]] }, { fecha: HOY, cliente: 'Colegio San José (ejemplo)', items: [['BARRA', 50], ['PAN DE 1/2', 5]] });
+})();
+
+// ───────── Cálculos para el panel ─────────
+function stockDe(mId) { return S.lotes.filter(l => l.materiaId === mId).reduce((s, l) => s + l.restante, 0); }
+function estadoStock(m) { const s = stockDe(m.id); return s <= 0.0001 ? 'Agotado' : s < m.minimo ? 'Bajo' : 'OK'; }
+function lotesVivos() { return S.lotes.filter(l => l.restante > 0.0001); }
+function proximosCaducar() { return lotesVivos().filter(l => diasHasta(l.caducidad) <= 7).sort((a, b) => a.caducidad.localeCompare(b.caducidad)); }
+// ───────── Temperaturas (sensores) y limpieza (plan) ─────────
+function fueraRango(e, v) { return v < e.min || v > e.max; }
+const rango = e => e.max < 0 ? e.max + ' °C o menos' : 'entre ' + e.min + ' y ' + e.max + ' °C';
+const lecturaHoy = eId => S.lecturas[eId].filter(([t]) => iso(new Date(t)) === HOY).slice(-1)[0];
+const ultimaLectura = eId => S.lecturas[eId][S.lecturas[eId].length - 1];
+const alertaAbierta = eId => S.alertas.find(a => a.equipoId === eId && !a.correctora);
+function statsDia(eId, fecha) {
+  const vs = S.lecturas[eId].filter(([t]) => iso(new Date(t)) === fecha).map(x => x[1]);
+  if (!vs.length) return null;
+  return { min: Math.min(...vs), max: Math.max(...vs), media: vs.reduce((a, b) => a + b, 0) / vs.length, n: vs.length };
+}
+const diaN = f => Math.round(new Date(f + 'T12:00') / 86400000);
+const tocaLimpiar = (t, f) => ((diaN(f) - t.desde) % t.cada + t.cada) % t.cada === 0;
+const tareasDia = f => S.tareas.filter(t => tocaLimpiar(t, f));
+const incid = (tId, f) => S.incidLimp.find(i => i.tareaId === tId && i.fecha === f);
+function proximaLimpieza(t) { for (let k = 0; k < 400; k++) { const f = iso(addDays(hoy, k)); if (tocaLimpiar(t, f)) return f; } }
+const ROLES = { 'Marisol': 'admin', 'Empleado mañana': 'empleado', 'Empleado noche': 'empleado' };
+(function () {
+  const q = new URLSearchParams(location.search);
+  if (q.get('embed')) document.documentElement.classList.add('embebida');
+  const n = q.get('usuario'); const r = q.get('rol');
+  if (n) {
+    ROLES[n] = r === 'admin' ? 'admin' : 'empleado';
+    const sel = document.getElementById('usr');
+    if (![...sel.options].some(o => o.value === n)) sel.add(new Option(n + (r === 'admin' ? ' (administrador/a)' : ''), n), 0);
+    sel.value = n;
+  }
+})();
+const esAdmin = () => ROLES[usuario()] === 'admin';
+const mesActual = HOY.slice(0, 7);
+function hace(ms) { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'ahora mismo' : m < 60 ? 'hace ' + m + ' min' : 'hace ' + Math.round(m / 60) + ' h'; }
+function alergenosProducto(p) {
+  const r = S.recetas[p]; if (!r) return null;
+  const set = new Set(); r.forEach(([m]) => (mat(m)?.alergenos || []).forEach(a => set.add(a))); return set;
+}
+S.alb = null; S.verProd = false; S.motivoPara = null; S.tempDraft = null;
+
+// ───────── Pestañas ─────────
+const TABS = [['hoy', 'Hoy'], ['reg', 'Registros'], ['plan', 'Plan de limpieza'], ['stock', 'Stock'], ['traza', 'Trazabilidad'], ['aler', 'Alérgenos'], ['rec', 'Recetas']];
+function renderTabs() {
+  const avisos = S.materias.filter(m => estadoStock(m) !== 'OK').length + proximosCaducar().length;
+  const c = { hoy: S.alertas.filter(a => !a.correctora).length, stock: avisos };
+  $('#tabs').innerHTML = TABS.map(([k, t]) => `<button class="tab" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${t}${k === 'rec' && !esAdmin() ? ' 🔒' : ''}${c[k] ? `<span class="dot">${c[k]}</span>` : ''}</button>`).join('');
+}
+function go(tab) { S.tab = tab; render(); window.scrollTo({ top: 0 }); }
+
+// ───────── Hoy ─────────
+function cardAlertas() {
+  const abiertas = S.alertas.filter(a => !a.correctora);
+  return abiertas.map(a => { const e = S.equipos.find(x => x.id === a.equipoId);
+    return `<section class="card alertcard"><h2>⚠️ ${esc(e.nombre)} fuera de temperatura <span class="pill err">${fNum(a.peor, 1)} °C</span></h2>
+      <p style="margin:0 0 10px">Marca ${fNum(a.peor, 1)} °C desde las ${new Date(a.desde).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} y debe estar ${rango(e)}. Se ha enviado un aviso al móvil. Mirad el equipo y decid qué se ha hecho:</p>
+      <div class="chips">${['Puerta mal cerrada: se cierra y se vigila', 'Se pasa el género a otro equipo', 'Se avisa al técnico de frío', 'Se tira el producto afectado'].map(o => `<button class="chip" data-acorr="${a.id}" data-txt="${esc(o)}">${o}</button>`).join('')}</div>
+    </section>`; }).join('');
+}
+function cardTemps() {
+  const hechas = S.equipos.every(e => lecturaHoy(e.id));
+  if (hechas) {
+    const l0 = lecturaHoy(S.equipos[0].id);
+    return `<section class="card"><h2>Temperaturas <span class="pill ok">Apuntadas hoy</span></h2>
+      <div class="sens">${S.equipos.map(e => { const [, v] = lecturaHoy(e.id); const mal = fueraRango(e, v);
+        return `<div class="sen ${mal ? 'mal' : ''}"><span class="sn">${esc(e.nombre)}</span><span class="sv">${fNum(v, 1)} °C</span><span class="muted">Ley: ${rango(e)}</span></div>`; }).join('')}</div>
+      <p class="muted" style="margin:10px 0 0">Apuntadas a las ${new Date(l0[0]).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} por ${esc(l0[2])}. Cuando pongáis los sensores, esto se hará solo.</p></section>`;
+  }
+  if (!S.tempDraft) S.tempDraft = Object.fromEntries(S.equipos.map(e => [e.id, { v: S.lecturas[e.id].slice(-1)[0]?.[1] ?? e.base, c: '' }]));
+  return `<section class="card"><h2>Temperaturas <span class="pill wrn">Por apuntar · 20 segundos</span></h2>
+    <p class="muted" style="margin:0 0 10px">Ya viene puesta la de ayer. Mirad el termómetro de cada equipo y cambiad solo la que sea distinta. Cuando tengáis los sensores, no hará falta.</p>
+    <div class="trows">${S.equipos.map(e => { const d = S.tempDraft[e.id]; const mal = fueraRango(e, d.v);
+      return `<div class="trow ${mal ? 'mal' : ''}">
+        <div class="tname"><b>${esc(e.nombre)}</b><span class="muted">Ley: ${rango(e)}</span></div>
+        <div class="stepper"><button type="button" data-tstep="${e.id}" data-d="-0.5" aria-label="Bajar medio grado">−</button><input data-tval="${e.id}" type="number" step="0.1" inputmode="decimal" value="${d.v}"><span>°C</span><button type="button" data-tstep="${e.id}" data-d="0.5" aria-label="Subir medio grado">+</button></div>
+        ${mal ? `<label class="f corr">Fuera de rango: ¿qué se ha hecho?
+          <select data-tcorr="${e.id}"><option value="">Elige una…</option>${['Puerta mal cerrada: se cierra y se vuelve a mirar en 30 min', 'Se ajusta el termostato y se vuelve a mirar en 30 min', 'Se pasa el género a otro equipo', 'Se avisa al técnico de frío', 'Se tira el producto afectado'].map(o => `<option ${d.c === o ? 'selected' : ''}>${o}</option>`).join('')}</select></label>` : ''}
+      </div>`; }).join('')}</div>
+    <button class="btn gold big" data-guardartemps style="width:100%">Guardar temperaturas</button>
+  </section>`;
+}
+function cardLimp() {
+  const ts = tareasDia(HOY);
+  return `<section class="card"><h2>Limpieza de hoy <span class="pill ok">Según el plan</span></h2>
+    <p class="muted" style="margin:0 0 10px">Lo que toca hoy según vuestro plan. No hay que confirmar nada: solo avisad si algo <b>no</b> se ha hecho.</p>
+    <div class="list">${ts.map(t => { const i = incid(t.id, HOY);
+      return `<div class="item ${i ? '' : 'done'}"><span class="check">${i ? '' : '✓'}</span><span class="grow"><b>${esc(t.nombre)}</b>${t.cada > 1 ? ` <span class="muted">· cada ${t.cada === 30 ? 'mes' : t.cada === 60 ? '2 meses' : t.cada + ' días'}</span>` : ''}${i ? `<br><span style="color:var(--err)">No se ha hecho: ${esc(i.motivo)} (${esc(i.user)})</span>` : ''}</span>
+        ${i ? `<button class="btn sm ghost" data-deshacer="${t.id}">Deshacer</button>` : `<button class="btn sm ghost" data-nohecho="${t.id}">No se ha hecho</button>`}</div>
+        ${S.motivoPara === t.id ? `<div class="row" style="margin:-2px 0 6px"><input id="motivo" placeholder="¿Por qué? Ej.: se hace mañana a primera hora" style="flex:1;min-width:200px"><button class="btn sm danger" data-guardarmotivo="${t.id}">Guardar</button></div>` : ''}`; }).join('')}</div>
+  </section>`;
+}
+function cardLote() {
+  const p = S.producciones.find(x => x.fecha === HOY);
+  return `<section class="card"><h2>Lote de hoy <span class="pill ok">Automático</span></h2>
+    ${p ? `<div class="row" style="justify-content:space-between"><div><div class="lotebig">${p.lote}</div><span class="muted">Se creó solo a las ${p.hora || '—'} al guardar la hoja de producción (${esc(p.user)}). Stock descontado según las recetas.</span></div>
+    <button class="btn ghost sm" data-hoy="verprod">${S.verProd ? 'Ocultar' : 'Ver qué se ha descontado'}</button></div>${S.verProd ? tablaConsumo(p.consumos) : ''}` :
+    `<p class="muted" style="margin:0">Se creará solo cuando se guarde la hoja de producción del día.</p>`}
+  </section>`;
+}
+function cardAlb() {
+  if (S.alb && S.alb.leyendo) return `<section class="card"><h2>Mercancía recibida</h2><p class="muted" style="margin:0">Leyendo el albarán…</p></section>`;
+  if (S.alb) {
+    const a = S.alb; const falta = a.lineas.some(l => l.estado === 'Aceptado' && (!l.lote || !l.caducidad));
+    return `<section class="card"><h2>Mercancía recibida <span class="pill wrn">Revisar</span></h2>
+      <div class="albhead"><b>${esc(a.proveedor)}</b><span class="muted">Albarán ${esc(a.albaran)} · ${fFecha(a.fecha)}</span></div>
+      <div class="alblist">${a.lineas.map((l, i) => { const m = mat(l.materiaId); const rech = l.estado === 'Rechazado';
+        return `<div class="albl ${rech ? 'rech' : ''}"><div class="grow"><b>${esc(m.nombre)}</b> · ${fNum(l.cantidad)} ${m.unidad}<br>
+          ${l.lote && l.caducidad ? `<span class="muted">Lote ${esc(l.lote)} · caduca ${fFecha(l.caducidad)}</span>` :
+          `<span class="row" style="gap:6px;margin-top:4px"><input data-alb="${i}" data-k="lote" placeholder="Lote (no se leyó)" value="${esc(l.lote)}" style="max-width:170px"><input data-alb="${i}" data-k="caducidad" type="date" value="${l.caducidad}" style="max-width:160px"></span>`}</div>
+          <button class="btn sm ${rech ? 'danger' : 'ghost'}" data-albrech="${i}">${rech ? 'Rechazado' : 'Rechazar'}</button></div>`; }).join('')}</div>
+      <div class="row" style="margin-top:12px"><button class="btn gold big" data-hoy="alb" ${falta ? 'disabled' : ''} style="flex:1">Todo correcto, guardar</button><button class="btn ghost" data-hoy="albcancel">Cancelar</button></div>
+    </section>`;
+  }
+  const hoyR = S.recepciones.filter(r => r.fecha === HOY);
+  return `<section class="card"><h2>Mercancía recibida <span class="pill gr">Solo cuando llega algo</span></h2>
+    ${hoyR.map(r => `<div class="okbox" style="margin-bottom:8px">✓ ${esc(r.proveedor)} · ${r.lineas.length} productos sumados al stock</div>`).join('')}
+    <p class="muted" style="margin:0 0 10px">Lo único que no puede hacer la app sola: hacer la foto al albarán cuando llega mercancía (20 segundos).</p>
+    <label class="btn gold" for="alb">📷 Foto del albarán</label><input id="alb" type="file" accept="image/*,application/pdf" capture="environment" hidden>
+  </section>`;
+}
+function cardVerif() {
+  if (S.verificaciones.some(v => v.mes === mesActual)) return '';
+  if (!esAdmin()) return '';
+  const desde = iso(addDays(hoy, -30));
+  const inc = S.incidLimp.filter(i => i.fecha >= desde).length; const al = S.alertas.filter(a => a.desde >= Date.now() - 30 * 86400000).length;
+  return `<section class="card"><h2>Revisión del mes <span class="pill wrn">Solo administradores · 1 minuto</span></h2>
+    <p style="margin:0 0 10px">Una vez al mes, el responsable comprueba que el plan se cumple y lo firma. En los últimos 30 días: <b>${inc}</b> limpieza(s) no hecha(s) y <b>${al}</b> aviso(s) de temperatura, todos con su medida correctora.</p>
+    <label class="f" style="margin-bottom:8px">Observaciones (opcional)<input id="vobs" placeholder="Ej.: todo correcto"></label>
+    <button class="btn gold" data-verif>Firmar la revisión de ${new Date().toLocaleDateString('es-ES', { month: 'long' })}</button>
+  </section>`;
+}
+function tablaConsumo(consumos) {
+  const porM = {}; consumos.forEach(x => { (porM[x.materiaId] ||= []).push(x); });
+  return `<div class="tw" style="margin-top:10px"><table><thead><tr><th>Materia prima</th><th>Gastado</th><th>Lote</th><th>Queda</th></tr></thead><tbody>
+    ${Object.entries(porM).map(([m, xs]) => `<tr><td>${esc(mat(m).nombre)}</td><td class="num"><b>${fNum(xs.reduce((s, x) => s + x.cantidad, 0))}</b> ${mat(m).unidad}</td><td>${xs.map(x => esc(S.lotes.find(l => l.id === x.loteId).lote)).join(', ')}</td><td class="num">${fNum(stockDe(m))} ${mat(m).unidad}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function vHoy() {
+  const abiertas = S.alertas.filter(a => !a.correctora).length;
+  const cad = proximosCaducar(); const bajos = S.materias.filter(m => estadoStock(m) !== 'OK');
+  return `
+  <div class="head"><div><h1>Hoy</h1><p class="sub">${new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p></div></div>
+  ${abiertas ? '' : S.equipos.every(e => lecturaHoy(e.id)) ? `<div class="okbox big" style="margin-bottom:16px">✓ Todo apuntado. El resto lo registra la app sola.</div>` : `<div class="note" style="margin-bottom:16px;font-size:15px">Hoy solo falta <b>apuntar las temperaturas</b> (20 segundos). Lo demás lo registra la app sola.</div>`}
+  <div class="stack">
+    ${cardAlertas()}${cardVerif()}${cardTemps()}${cardLimp()}${cardLote()}${cardAlb()}
+    ${cad.length || bajos.length ? `<section class="card"><h2>Avisos de almacén</h2><div class="list">
+      ${cad.map(l => { const d = diasHasta(l.caducidad); return `<div class="item"><span class="grow"><b>${esc(mat(l.materiaId).nombre)}</b> · lote ${esc(l.lote)} <span class="muted">· quedan ${fNum(l.restante)} ${mat(l.materiaId).unidad}</span></span><span class="pill ${d < 0 ? 'err' : 'wrn'}">${d < 0 ? 'Caducado' : d === 0 ? 'Caduca hoy' : 'Caduca en ' + d + ' d'}</span></div>`; }).join('')}
+      ${bajos.map(m => `<div class="item"><span class="grow"><b>${esc(m.nombre)}</b> <span class="muted">· hay ${fNum(stockDe(m.id))} ${m.unidad}, mínimo ${fNum(m.minimo)}</span></span><span class="pill ${estadoStock(m) === 'Agotado' ? 'err' : 'wrn'}">Pedir</span></div>`).join('')}
+    </div></section>` : ''}
+  </div>`;
+}
+
+// ───────── Registros ─────────
+function vReg() {
+  const dias = [...Array(7)].map((_, k) => iso(addDays(hoy, -k)));
+  return `
+  <div class="head"><div><h1>Registros</h1><p class="sub">Lo que se enseña en una inspección. Temperaturas de los sensores, limpieza según el plan con sus incidencias, revisiones mensuales y albaranes.</p></div></div>
+  <div class="stack">
+    <div class="card"><h2>Temperaturas apuntadas</h2><p class="muted" style="margin:-4px 0 10px">Ley: frigoríficos y cámara entre 0 y 4 °C · congeladores −18 °C o menos.</p><div class="tw"><table><thead><tr><th>Día</th>${S.equipos.map(e => `<th>${esc(e.nombre)}</th>`).join('')}</tr></thead><tbody>
+      ${dias.map(f => `<tr><td style="white-space:nowrap">${fCorta(f)}</td>${S.equipos.map(e => { const s = statsDia(e.id, f); if (!s) return '<td>—</td>'; const mal = fueraRango(e, s.min) || fueraRango(e, s.max); return `<td class="num" style="white-space:nowrap;${mal ? 'color:var(--err);font-weight:700' : ''}">${s.min === s.max ? fNum(s.min, 1) : fNum(s.min, 1) + ' / ' + fNum(s.max, 1)}</td>`; }).join('')}</tr>`).join('')}
+    </tbody></table></div>
+    <h2 style="margin-top:16px">Avisos y medidas correctoras</h2>
+    <div class="list">${S.alertas.slice().reverse().map(a => { const e = S.equipos.find(x => x.id === a.equipoId); return `<div class="item"><span class="grow"><b>${esc(e.nombre)}</b> llegó a ${fNum(a.peor, 1)} °C · ${new Date(a.desde).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}<br><span class="muted">${a.correctora ? 'Medida: ' + esc(a.correctora) + ' (' + esc(a.user) + ')' : 'Sin medida correctora todavía'}</span></span><span class="pill ${a.correctora ? 'ok' : 'err'}">${a.correctora ? 'Resuelto' : 'Pendiente'}</span></div>`; }).join('') || '<p class="muted">Sin avisos.</p>'}</div></div>
+    <div class="grid2">
+      <div class="card"><h2>Limpieza</h2><div class="tw"><table><thead><tr><th>Día</th><th>Según el plan</th></tr></thead><tbody>
+        ${dias.map(f => `<tr><td style="white-space:nowrap">${fCorta(f)}</td><td>${tareasDia(f).map(t => { const i = incid(t.id, f); return i ? `<span class="pill err" title="${esc(i.motivo)}">${esc(t.nombre)}: no hecha</span>` : `<span class="pill ok">${esc(t.nombre)}</span>`; }).join(' ')}${tareasDia(f).filter(t => incid(t.id, f)).map(t => `<div class="muted">${esc(t.nombre)}: ${esc(incid(t.id, f).motivo)} (${esc(incid(t.id, f).user)})</div>`).join('')}</td></tr>`).join('')}
+      </tbody></table></div>
+      <h2 style="margin-top:16px">Revisiones mensuales firmadas</h2>
+      <div class="list">${S.verificaciones.slice().reverse().map(v => `<div class="item"><span class="grow"><b>${new Date(v.mes + '-15').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</b> · firmada por ${esc(v.user)} el ${fFecha(v.fecha)}<br><span class="muted">${esc(v.obs)}</span></span><span class="pill ok">Firmada</span></div>`).join('')}</div></div>
+      <div class="card"><h2>Albaranes</h2><div class="list">${S.recepciones.slice().reverse().map(r => `<details class="item" style="display:block"><summary style="cursor:pointer"><b>${esc(r.proveedor)}</b> <span class="muted">· ${esc(r.albaran)} · ${fCorta(r.fecha)}</span> ${r.lineas.some(x => x.estado === 'Rechazado') ? '<span class="pill err">Con rechazos</span>' : ''}</summary>
+        <div class="tw" style="margin-top:8px"><table><tbody>${r.lineas.map(x => `<tr><td>${esc(mat(x.materiaId).nombre)}</td><td class="num">${fNum(x.cantidad)} ${mat(x.materiaId).unidad}</td><td>${esc(x.lote)}</td><td><span class="pill ${x.estado === 'Aceptado' ? 'ok' : 'err'}">${x.estado}</span></td></tr>`).join('')}</tbody></table></div></details>`).join('')}</div></div>
+    </div>
+  </div>`;
+}
+
+// ───────── Plan de limpieza ─────────
+function vPlan() {
+  const cada = t => t.cada === 1 ? 'Todos los días' : t.cada === 14 ? 'Cada 2 semanas' : t.cada === 30 ? 'Una vez al mes' : t.cada === 60 ? 'Cada 2 meses' : 'Cada ' + t.cada + ' días';
+  return `
+  <div class="head"><div><h1>Plan de limpieza y desinfección</h1><p class="sub">Vuestro plan oficial: qué se limpia, cada cuánto, con qué y cómo. La app lo usa para registrar la limpieza de cada día.</p></div></div>
+  <div class="stack">
+    <div class="card"><div class="tw"><table><thead><tr><th>Qué</th><th>Cada cuánto</th><th>Próxima</th><th>Producto</th><th>Cómo</th></tr></thead><tbody>
+      ${S.tareas.map(t => `<tr><td><b>${esc(t.nombre)}</b>${t.porConfirmar ? '<br><span class="pill wrn">Confírmame la frecuencia</span>' : ''}</td><td style="white-space:nowrap">${cada(t)}</td><td style="white-space:nowrap">${fCorta(proximaLimpieza(t))}</td><td style="min-width:180px">${esc(t.producto)}</td><td style="min-width:260px">${esc(t.como)}</td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><h2>Normas que pide Sanidad</h2>
+      <ul class="normas">
+        <li><b>Primero limpiar, después desinfectar.</b> El desinfectante no funciona sobre suciedad.</li>
+        <li>Los <b>desinfectantes</b> deben estar inscritos en el registro oficial de biocidas y llevar en la etiqueta las siglas <b>«HA»</b> (uso en la industria alimentaria). La lejía también vale si la etiqueta dice que es apta para uso alimentario o para desinfectar agua de bebida.</li>
+        <li>Usar siempre <b>la dosis y el tiempo que pone la etiqueta o la ficha técnica</b> de cada producto. Guardad las fichas técnicas: el inspector puede pedirlas.</li>
+        <li>Después de desinfectar, <b>aclarar con agua potable</b> todo lo que toca la masa o el producto.</li>
+        <li>Limpiar <b>sin alimentos al descubierto</b> y de las zonas más limpias a las más sucias. El suelo, lo último.</li>
+        <li>Los productos de limpieza, en un <b>armario cerrado y separado</b> de las materias primas.</li>
+        <li>Bayetas y fregonas de los <b>aseos, separadas</b> de las del obrador.</li>
+      </ul>
+      <p class="muted" style="margin:8px 0 0">Fuente: guía de prácticas correctas de higiene para panadería, bollería y pastelería artesanas (FEGREPPA).</p>
+    </div>
+  </div>`;
+}
+
+
+function vStock() {
+  return `
+  <div class="head"><div><h1>Stock de materias primas</h1><p class="sub">Sube con cada albarán y baja sola al apuntar la producción, empezando por el lote que antes caduca.</p></div></div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Materia prima</th><th>Hay</th><th>Mínimo</th><th>Estado</th><th>Lotes en almacén</th></tr></thead><tbody>
+  ${S.materias.map(m => { const st = estadoStock(m); const ls = lotesVivos().filter(l => l.materiaId === m.id).sort((a, b) => a.caducidad.localeCompare(b.caducidad));
+    return `<tr><td><b>${esc(m.nombre)}</b>${m.alergenos.length ? `<br><span class="muted">Alérgenos: ${m.alergenos.join(', ')}</span>` : ''}</td>
+    <td class="num"><b>${fNum(stockDe(m.id))}</b> ${m.unidad}</td><td class="num">${fNum(m.minimo)} ${m.unidad}</td>
+    <td><span class="pill ${st === 'OK' ? 'ok' : st === 'Bajo' ? 'wrn' : 'err'}">${st}</span></td>
+    <td>${ls.length ? ls.map(l => { const d = diasHasta(l.caducidad); return `<div class="row" style="gap:6px;margin:2px 0"><span class="num">${esc(l.lote)}</span><span class="muted">${fNum(l.restante)} ${m.unidad}</span><span class="pill ${d < 0 ? 'err' : d <= 7 ? 'wrn' : 'gr'}">${d < 0 ? 'Caducado' : 'Cad. ' + fFecha(l.caducidad)}</span></div>`; }).join('') : '<span class="muted">Sin lotes</span>'}</td></tr>`; }).join('')}
+  </tbody></table></div></div>`;
+}
+
+function vRec() {
+  if (!esAdmin()) return `<div class="head"><div><h1>Recetas</h1></div></div><div class="card" style="text-align:center;padding:40px 16px"><div style="font-size:40px">🔒</div><h2 style="border:none">Solo para administradores</h2><p class="muted">Entra como Marisol (o con otro usuario administrador) para ver y cambiar las recetas.</p></div>`;
+  const p = S.recetaSel; const r = S.recetas[p] || [];
+  const al = alergenosProducto(p);
+  return `
+  <div class="head"><div><h1>Recetas</h1><p class="sub">Lo que lleva <b>una unidad</b> de cada producto. Sirve para descontar el stock y para saber los alérgenos. <b>Las cantidades de la prueba son inventadas</b>: las de verdad las ponéis vosotros.</p></div></div>
+  <div class="grid2">
+    <div class="card"><h2>Productos</h2>
+      <div class="list">${S.productos.map(x => `<button class="item" data-rsel="${esc(x)}" style="text-align:left;width:100%;${x === p ? 'border-color:var(--pur);background:var(--purbg)' : ''}"><span class="grow"><b>${esc(x)}</b></span>${S.recetas[x] ? `<span class="pill ok">${S.recetas[x].length} ingredientes</span>` : '<span class="pill wrn">Sin receta</span>'}</button>`).join('')}</div>
+    </div>
+    <div class="card"><h2>${esc(p)} <span class="muted" style="font-family:var(--sans);font-size:13px">por 1 unidad</span></h2>
+      <div class="tw"><table><thead><tr><th>Ingrediente</th><th>Cantidad</th><th></th></tr></thead><tbody>
+      ${r.map(([m, q], i) => `<tr><td style="min-width:190px"><select data-ri="${i}" data-k="m">${S.materias.map(x => `<option value="${x.id}" ${x.id === m ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></td><td style="min-width:140px"><div class="row" style="flex-wrap:nowrap"><input data-ri="${i}" data-k="q" type="number" step="0.001" value="${q}"><span class="muted">${mat(m).unidad}</span></div></td><td><button class="btn sm ghost" data-ridel="${i}" aria-label="Quitar">✕</button></td></tr>`).join('') || '<tr><td colspan="3" class="muted">Sin ingredientes todavía.</td></tr>'}
+      </tbody></table></div>
+      <button class="btn ghost sm" style="margin-top:10px" data-radd>+ Añadir ingrediente</button>
+      <div style="margin-top:14px"><b>Alérgenos:</b> ${al ? (al.size ? [...al].map(a => `<span class="pill err">${a}</span>`).join(' ') : '<span class="pill ok">Ninguno de los 14</span>') : '<span class="muted">Pon la receta para calcularlos.</span>'}</div>
+    </div>
+  </div>`;
+}
+
+function vTraza() {
+  const opts = S.lotes.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).map(l => `<option value="m:${l.id}" ${S.trazaSel === 'm:' + l.id ? 'selected' : ''}>${esc(mat(l.materiaId).nombre)} · lote ${esc(l.lote)}</option>`).join('');
+  const optsP = S.producciones.slice().reverse().map(p => `<option value="p:${p.id}" ${S.trazaSel === 'p:' + p.id ? 'selected' : ''}>Producción ${p.lote} · ${fCorta(p.fecha)}</option>`).join('');
+  let res = '<p class="muted">Elige un lote para ver de dónde vino y a dónde fue.</p>';
+  if (S.trazaSel && S.trazaSel.startsWith('m:')) {
+    const l = S.lotes.find(x => x.id === S.trazaSel.slice(2)); const rcp = S.recepciones.find(r => r.id === l.recepcionId); const m = mat(l.materiaId);
+    const prods = S.producciones.filter(p => p.consumos.some(c => c.loteId === l.id));
+    const clientes = []; prods.forEach(p => { const prodsUsan = Object.keys(S.recetas).filter(k => S.recetas[k].some(([mm]) => mm === m.id)); S.salidas.filter(s => s.fecha === p.fecha).forEach(s => { const its = s.items.filter(([pr]) => prodsUsan.includes(pr)); if (its.length) clientes.push({ fecha: p.fecha, lote: p.lote, cliente: s.cliente, its }); }); });
+    res = `<div class="flow">
+      <div class="step"><span class="k">1 · Entró</span><b>${esc(m.nombre)}</b><span>Lote <b>${esc(l.lote)}</b> · ${fNum(l.cantidad)} ${m.unidad}</span><span class="muted">${esc(rcp.proveedor)}<br>Albarán ${esc(rcp.albaran)} · ${fFecha(rcp.fecha)}<br>Caduca ${fFecha(l.caducidad)} · Recibió ${esc(rcp.user)}</span><span class="pill gr">Quedan ${fNum(l.restante)} ${m.unidad}</span></div>
+      <div class="step"><span class="k">2 · Se usó en</span>${prods.length ? prods.map(p => `<div><b>Lote ${p.lote}</b> <span class="muted">${fCorta(p.fecha)}</span><br><span class="muted">${fNum(p.consumos.filter(c => c.loteId === l.id).reduce((s, c) => s + c.cantidad, 0))} ${m.unidad} en ${p.items.filter(i => S.recetas[i.producto]?.some(([mm]) => mm === m.id)).map(i => esc(i.producto)).join(', ')}</span></div>`).join('') : '<span class="muted">Todavía no se ha usado.</span>'}</div>
+      <div class="step"><span class="k">3 · Se vendió a</span>${clientes.length ? clientes.map(c => `<div><b>${esc(c.cliente)}</b> <span class="muted">${fCorta(c.fecha)} · ${c.lote}</span><br><span class="muted">${c.its.map(([pr, u]) => esc(pr) + ' × ' + u).join(', ')}</span></div>`).join('') : '<span class="muted">Sin ventas asociadas.</span>'}</div>
+    </div>
+    ${clientes.length ? `<div class="note" style="margin-top:12px">Si hubiera una alerta sanitaria con este lote, estos son los clientes a los que avisar.</div>` : ''}`;
+  } else if (S.trazaSel && S.trazaSel.startsWith('p:')) {
+    const p = S.producciones.find(x => x.id === S.trazaSel.slice(2));
+    const usados = {}; p.consumos.forEach(c => { usados[c.loteId] = (usados[c.loteId] || 0) + c.cantidad; });
+    const sal = S.salidas.filter(s => s.fecha === p.fecha);
+    res = `<div class="flow">
+      <div class="step"><span class="k">1 · Materias primas usadas</span>${Object.entries(usados).map(([lid, q]) => { const l = S.lotes.find(x => x.id === lid); const r = S.recepciones.find(x => x.id === l.recepcionId); return `<div><b>${esc(mat(l.materiaId).nombre)}</b><br><span class="muted">Lote ${esc(l.lote)} · ${fNum(q)} ${mat(l.materiaId).unidad} · ${esc(r.proveedor)}</span></div>`; }).join('')}</div>
+      <div class="step"><span class="k">2 · Producción</span><b>Lote ${p.lote}</b><span class="muted">${fFecha(p.fecha)} · ${esc(p.user)}</span>${p.items.map(i => `<span>${esc(i.producto)} × ${i.uds}</span>`).join('')}</div>
+      <div class="step"><span class="k">3 · Clientes</span>${sal.map(s => `<div><b>${esc(s.cliente)}</b><br><span class="muted">${s.items.map(([pr, u]) => esc(pr) + ' × ' + u).join(', ')}</span></div>`).join('') || '<span class="muted">Sin ventas ese día.</span>'}</div>
+    </div>`;
+  }
+  return `
+  <div class="head"><div><h1>Trazabilidad</h1><p class="sub">Un paso atrás (de qué proveedor y lote vino cada cosa) y un paso adelante (a qué clientes fue). Es lo que pide el Reglamento 178/2002 ante una alerta.</p></div></div>
+  <div class="stack">
+    <div class="card"><label class="f">Buscar por lote<select id="tz"><option value="">Elige un lote…</option><optgroup label="Lotes de materia prima">${opts}</optgroup><optgroup label="Lotes de producción">${optsP}</optgroup></select></label></div>
+    <div class="card fade">${res}</div>
+  </div>`;
+}
+
+function vAler() {
+  const filas = S.productos.map(p => ({ p, al: alergenosProducto(p) }));
+  return `
+  <div class="head"><div><h1>Alérgenos</h1><p class="sub">Se calculan solos a partir de las recetas y de los alérgenos de cada materia prima (Reglamento 1169/2011, los 14 de declaración obligatoria).</p></div>
+    <button class="btn ${S.verCartel ? 'ghost' : 'gold'}" data-cartel>${S.verCartel ? 'Ver la tabla' : 'Ver cartel para el mostrador'}</button></div>
+  ${S.verCartel ? `<div class="cartel"><h3>Información sobre alérgenos</h3><p class="muted" style="text-align:center;margin:0 0 14px">Productos MariSol · Consulte a nuestro personal ante cualquier duda</p>
+    <div class="list">${filas.map(f => `<div class="item"><span class="grow"><b>${esc(f.p)}</b></span>${f.al ? (f.al.size ? `<span>Contiene: <b>${[...f.al].join(', ')}</b></span>` : '<span class="pill ok">Sin alérgenos</span>') : '<span class="pill wrn">Falta la receta</span>'}</div>`).join('')}</div>
+    <p class="muted" style="margin:14px 0 0;text-align:center">En el obrador se manipulan gluten, huevo y leche: puede haber trazas.</p></div>`
+  : `<div class="card"><div class="tw"><table><thead><tr><th>Producto</th>${ALERGENOS.map(a => `<th class="vhead">${a}</th>`).join('')}</tr></thead><tbody>
+    ${filas.map(f => `<tr><td style="white-space:nowrap"><b>${esc(f.p)}</b>${f.al ? '' : ' <span class="pill wrn">Sin receta</span>'}</td>${ALERGENOS.map(a => `<td class="al ${f.al && f.al.has(a) ? '' : 'no'}" title="${a}"><span></span></td>`).join('')}</tr>`).join('')}
+    </tbody></table></div><p class="muted" style="margin:10px 0 0">● rojo = lo contiene. Si cambias una receta, la tabla se actualiza.</p></div>`}`;
+}
+
+
+
+const VISTAS = { hoy: vHoy, reg: vReg, plan: vPlan, stock: vStock, rec: vRec, traza: vTraza, aler: vAler };
+// Los cambios en campos se dibujan un instante después, para no chocar con un clic en curso
+let renderT; function renderLater() { clearTimeout(renderT); renderT = setTimeout(render, 0); }
+function render() { clearTimeout(renderT); renderTabs(); $('#main').innerHTML = `<div class="fade">${VISTAS[S.tab]()}</div>`; }
+
+// ───────── Eventos ─────────
+function leerTemps() { document.querySelectorAll('[data-tval]').forEach(el => { const v = parseFloat(String(el.value).replace(',', '.')); if (!isNaN(v)) S.tempDraft[el.dataset.tval].v = v; }); }
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-go],[data-hoy],[data-albrech],[data-rsel],[data-ridel],[data-radd],[data-cartel],[data-acorr],[data-nohecho],[data-guardarmotivo],[data-deshacer],[data-verif],[data-tstep],[data-guardartemps]');
+  if (!t) return;
+  const ds = t.dataset;
+  if (ds.tab) return go(ds.tab);
+  if (ds.go) return go(ds.go);
+  if (ds.tstep) { leerTemps(); const d = S.tempDraft[ds.tstep]; d.v = Math.round((d.v + Number(ds.d)) * 10) / 10; return render(); }
+  if (ds.guardartemps !== undefined) {
+    leerTemps();
+    const sinCorr = S.equipos.filter(eq => fueraRango(eq, S.tempDraft[eq.id].v) && !S.tempDraft[eq.id].c);
+    if (sinCorr.length) { toast('Di qué se ha hecho con: ' + sinCorr.map(x => x.nombre).join(', ')); return; }
+    const now = Date.now();
+    S.equipos.forEach(eq => { const d = S.tempDraft[eq.id]; S.lecturas[eq.id].push([now, d.v, usuario()]);
+      if (fueraRango(eq, d.v)) S.alertas.push({ id: uid('a'), equipoId: eq.id, desde: now, hasta: now, peor: d.v, correctora: d.c, user: usuario(), resuelta: true }); });
+    S.tempDraft = null; toast('Temperaturas guardadas'); return render();
+  }
+  if (ds.simular !== undefined) {
+    const arr = S.lecturas.e3; const now = Date.now();
+    arr.push([now - 600000, 6.4], [now, 7.2]);
+    S.alertas.push({ id: uid('a'), equipoId: 'e3', desde: now - 600000, hasta: now, peor: 7.2, correctora: '', user: '' });
+    toast('📱 Aviso enviado al móvil: Frigorífico 2 a 7,2 °C'); window.scrollTo({ top: 0 }); return render();
+  }
+  if (ds.acorr) {
+    const a = S.alertas.find(x => x.id === ds.acorr); a.correctora = ds.txt; a.user = usuario(); a.resuelta = true;
+    const arr = S.lecturas[a.equipoId]; arr.push([Date.now() + 1000, S.equipos.find(x => x.id === a.equipoId).base]);
+    toast('Medida correctora guardada'); return render();
+  }
+  if (ds.nohecho) { S.motivoPara = ds.nohecho; render(); $('#motivo')?.focus(); return; }
+  if (ds.guardarmotivo) {
+    const m = $('#motivo').value.trim(); if (!m) { toast('Escribe el motivo'); return; }
+    S.incidLimp.push({ tareaId: ds.guardarmotivo, fecha: HOY, motivo: m, user: usuario() }); S.motivoPara = null; toast('Apuntado'); return render();
+  }
+  if (ds.deshacer) { S.incidLimp = S.incidLimp.filter(i => !(i.tareaId === ds.deshacer && i.fecha === HOY)); return render(); }
+  if (ds.verif !== undefined) { S.verificaciones.push({ mes: mesActual, fecha: HOY, user: usuario(), obs: $('#vobs').value.trim() || 'Todo correcto' }); toast('Revisión del mes firmada'); return render(); }
+  if (ds.albrech !== undefined) { const l = S.alb.lineas[Number(ds.albrech)]; l.estado = l.estado === 'Rechazado' ? 'Aceptado' : 'Rechazado'; return render(); }
+  if (ds.hoy === 'albcancel') { S.alb = null; return render(); }
+  if (ds.hoy === 'alb') {
+    const a = S.alb; a.lineas.forEach(l => { if (l.estado === 'Rechazado') l.motivo = 'Rechazado en recepción'; });
+    crearRecepcion(a.fecha, a.proveedor, a.albaran, a.lineas, usuario()); S.alb = null;
+    toast('Albarán guardado y sumado al stock'); return render();
+  }
+  if (ds.hoy === 'verprod') { S.verProd = !S.verProd; return render(); }
+  if (ds.rsel) { S.recetaSel = ds.rsel; return render(); }
+  if (ds.ridel !== undefined) { S.recetas[S.recetaSel].splice(Number(ds.ridel), 1); return render(); }
+  if (ds.radd !== undefined) { (S.recetas[S.recetaSel] ||= []).push(['m1', 0.1]); return render(); }
+  if (ds.cartel !== undefined) { S.verCartel = !S.verCartel; return render(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'usr') { if (S.tab === 'rec' && !esAdmin()) toast('Las recetas solo las ven los administradores'); return render(); }
+  if (t.dataset.tval) { leerTemps(); return renderLater(); }
+  if (t.dataset.tcorr) { S.tempDraft[t.dataset.tcorr].c = t.value; return; }
+  if (t.dataset.alb !== undefined) { S.alb.lineas[Number(t.dataset.alb)][t.dataset.k] = t.value; return renderLater(); }
+  if (t.id === 'alb' && t.files.length) {
+    S.alb = { leyendo: true }; render();
+    setTimeout(() => {
+      const yymm = HOY.slice(2, 7).replace('-', '');
+      S.alb = { proveedor: 'Distribuciones La Mancha (ejemplo)', albaran: '2026/' + (1200 + Math.floor(Math.random() * 90)), fecha: HOY, lineas: [
+        { materiaId: 'm1', cantidad: 500, lote: 'HJ-' + yymm + '-03', caducidad: iso(addDays(hoy, 180)), temp: '', estado: 'Aceptado' },
+        { materiaId: 'm3', cantidad: 5, lote: '', caducidad: '', temp: '', estado: 'Aceptado' },
+        { materiaId: 'm9', cantidad: 12, lote: 'LE-' + yymm + '7', caducidad: iso(addDays(hoy, 8)), temp: '4', estado: 'Aceptado' },
+      ] };
+      render(); toast('Albarán leído: revisa el lote de la levadura');
+    }, 1200);
+  }
+  if (t.dataset.ri !== undefined) { const r = S.recetas[S.recetaSel][Number(t.dataset.ri)]; if (t.dataset.k === 'm') r[0] = t.value; else r[1] = parseFloat(t.value) || 0; return renderLater(); }
+  if (t.id === 'tz') { S.trazaSel = t.value || null; return renderLater(); }
+});
+document.addEventListener('submit', e => e.preventDefault());
+
+S.trazaSel = 'm:' + S.lotes[0].id;
+render();
+})();
+</script>
+</body>
+</html>

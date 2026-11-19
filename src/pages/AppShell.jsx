@@ -42,7 +42,7 @@ export default function AppShell() {
     { to: '/comandas', icon: '📋', label: 'Comandas', badge: pendientes },
     { to: '/produccion', icon: '🏭', label: 'Produccion' },
     { to: '/proveedores', icon: '🚚', label: 'Proveedores' },
-    ...(isAdmin ? [{ to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
+    ...(isAdmin ? [{ to: '/appcc', icon: '🧪', label: 'APPCC' }, { to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
   ]
 
   function isActive(item) {
