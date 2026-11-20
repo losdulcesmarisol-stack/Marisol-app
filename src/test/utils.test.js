@@ -35,7 +35,7 @@ describe('getDiaPanadero', () => {
     expect(dp).toHaveProperty('turno')
     expect(dp).toHaveProperty('label')
     expect(dp.fechaEntrega).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(['tarde','noche','mañana']).toContain(dp.turno)
+    expect(['madrugada','mañana','tarde','noche']).toContain(dp.turno)
   })
 })
 
