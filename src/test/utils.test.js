@@ -66,3 +66,35 @@ describe('labelFecha', () => {
     expect(labelFecha(ay)).toContain('Ayer')
   })
 })
+
+// ── Hora de España (antes se usaba UTC y de madrugada salía el día anterior) ──
+import { vi, afterEach } from 'vitest'
+import { fechaES, horaStr, sumarDias } from '../lib/utils'
+
+describe('fechas en hora de España', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('a las 00:44 de España (invierno) ya es el día nuevo', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-13T23:44:00Z')) // 00:44 del 14 en España
+    expect(todayStr()).toBe('2026-11-14')
+    expect(horaStr()).toBe('00:44')
+    expect(getDiaPanadero().fechaEntrega).toBe('2026-11-14')
+    expect(getDiaPanadero().turno).toBe('madrugada')
+  })
+  it('a la 01:30 de España (verano, UTC+2) ya es el día nuevo', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-07-25T23:30:00Z')) // 01:30 del 26 en España
+    expect(todayStr()).toBe('2026-07-26')
+    expect(getDiaPanadero().fechaEntrega).toBe('2026-07-26')
+  })
+  it('a partir de las 10:00 los pedidos son para mañana', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-12-31T10:15:00Z')) // 11:15 del 31 en España
+    expect(getDiaPanadero().fechaEntrega).toBe('2027-01-01')
+  })
+  it('sumarDias cruza meses y años', () => {
+    expect(sumarDias('2026-12-31', 1)).toBe('2027-01-01')
+    expect(sumarDias('2026-03-01', -1)).toBe('2026-02-28')
+  })
+  it('fechaES de un momento concreto', () => {
+    expect(fechaES(new Date('2026-03-29T22:30:00Z'))).toBe('2026-03-30') // cambio de hora
+  })
+})
