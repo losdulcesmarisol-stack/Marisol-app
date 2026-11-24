@@ -6,6 +6,9 @@ import { Toaster } from 'react-hot-toast'
 import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
+import { aplicarTema } from './lib/tema'
+
+aplicarTema()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

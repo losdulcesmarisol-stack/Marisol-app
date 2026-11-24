@@ -369,7 +369,7 @@ Responde en español, sé directo y práctico.` }]
                                     <input key={field} type="number" min="0"
                                       value={editVal[field]}
                                       onChange={e => setEditVal(v => ({ ...v, [field]: e.target.value }))}
-                                      style={{ width:'100%', padding:'5px 4px', borderRadius:6, textAlign:'center', border:'1.5px solid var(--pur)', background:'#fff', color:'var(--txt1)', fontSize:13, fontWeight:600 }}
+                                      style={{ width:'100%', padding:'5px 4px', borderRadius:6, textAlign:'center', border:'1.5px solid var(--pur)', background:'var(--sur)', color:'var(--txt)', fontSize:13, fontWeight:600 }}
                                     />
                                   ))}
                                   <div style={{ display:'flex', flexDirection:'column', gap:3 }}>

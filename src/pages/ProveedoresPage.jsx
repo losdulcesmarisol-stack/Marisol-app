@@ -6,6 +6,7 @@ import { Card, CardTitle, SectionHeader, Btn, Modal, ModalFooter, FormGroup, Gri
 import { useAuth } from '../context/AuthContext'
 import LectorFactura from '../components/modals/LectorFactura'
 import toast from 'react-hot-toast'
+import { avisoDeshacer } from '../lib/deshacer'
 
 export default function ProveedoresPage() {
   const { isAdmin } = useAuth()
@@ -67,11 +68,14 @@ export default function ProveedoresPage() {
   }
 
   async function delProv(id, nom) {
-    if (!window.confirm('Eliminar proveedor ' + nom + '?')) return
     const { error } = await supabase.from('proveedores').update({ activo: false }).eq('id', id)
     if (error) { toast.error('Error: ' + error.message); return }
-    toast.success('Eliminado')
     await loadProveedores()
+    avisoDeshacer('Proveedor ' + nom + ' eliminado', async () => {
+      const { error: e } = await supabase.from('proveedores').update({ activo: true }).eq('id', id)
+      if (e) throw e
+      await loadProveedores()
+    })
   }
 
   function openNewFac() {

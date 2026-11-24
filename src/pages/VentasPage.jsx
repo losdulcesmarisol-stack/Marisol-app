@@ -3,9 +3,10 @@ import { useOutletContext } from 'react-router-dom'
 import { useProductos } from '../hooks/useProductos'
 import { useClientes } from '../hooks/useClientes'
 import { supabase } from '../lib/supabase'
-import { fmt, todayStr, getDiaPanadero, labelFecha, getEmoji, CAT_EMOJI, horaStr } from '../lib/utils'
+import { fmt, todayStr, getDiaPanadero, labelFecha, getEmoji, CAT_EMOJI, horaStr, sumarDias } from '../lib/utils'
 import { Card, CardTitle, SectionHeader, Btn, Tag, Loading, Empty, Banner } from '../components/ui'
 import toast from 'react-hot-toast'
+import { insertarSeguro } from '../lib/colaOffline'
 import styles from './VentasPage.module.css'
 
 const CATEGORIAS = Object.keys(CAT_EMOJI)
@@ -20,6 +21,17 @@ export default function VentasPage() {
   const [historial, setHistorial] = useState([])
   const [loadingH, setLoadingH] = useState(false)
   const [catActiva, setCatActiva] = useState('todas')
+  const [busqueda, setBusqueda] = useState('')
+  const [vendidos, setVendidos] = useState({})   // { prodId: unidades vendidas en 30 días }
+
+  // Los más vendidos de los últimos 30 días salen primero
+  useEffect(() => {
+    supabase.from('ventas').select('items').gte('fecha_registro', sumarDias(todayStr(), -30)).then(({ data }) => {
+      const m = {}
+      for (const v of data || []) for (const i of v.items || []) if (i.prodId) m[i.prodId] = (m[i.prodId] || 0) + (Number(i.qty) || 0)
+      setVendidos(m)
+    })
+  }, [])
   const [selProd, setSelProd] = useState(null)
   const [cantInput, setCantInput] = useState('')
   const dp = getDiaPanadero()
@@ -108,7 +120,11 @@ export default function VentasPage() {
   const total = ticket.reduce((s, i) => s + i.precio * i.qty, 0)
   const cli = clientes.find(c => c.id === cliId)
   const categoriasDisponibles = CATEGORIAS.filter(c => productos.some(p => p.categoria === c))
-  const prodsFiltrados = catActiva === 'todas' ? productos : productos.filter(p => p.categoria === catActiva)
+  const normal = t => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const prodsFiltrados = (busqueda.trim()
+    ? productos.filter(p => normal(p.nombre).includes(normal(busqueda.trim())))
+    : catActiva === 'todas' ? productos : productos.filter(p => p.categoria === catActiva))
+    .slice().sort((a, b) => (vendidos[b.id] || 0) - (vendidos[a.id] || 0) || a.nombre.localeCompare(b.nombre))
   const numKeys = ['1','2','3','4','5','6','7','8','9','C','0','DEL']
 
   async function registrar(esComanda) {
@@ -116,15 +132,13 @@ export default function VentasPage() {
     const base = { fecha_registro: todayStr(), hora_registro: horaStr(), fecha_entrega: fechaCustom || dp.fechaEntrega, cliente_id: cliId || null, cliente_nombre: cli ? cli.nombre : 'Directo', items: ticket, total }
     try {
       if (esComanda) {
-        const { error } = await supabase.from('comandas').insert({ ...base, estado: 'pendiente' })
-        if (error) throw error
-        toast.success('Comanda enviada para ' + dp.label)
-        refreshPendientes()
+        const { enCola } = await insertarSeguro('comandas', { ...base, estado: 'pendiente' })
+        toast.success(enCola ? '📴 Sin internet: comanda guardada, se enviará sola' : 'Comanda enviada para ' + dp.label)
+        if (!enCola) refreshPendientes()
       } else {
-        const { error } = await supabase.from('ventas').insert({ ...base, tipo: 'cobrado' })
-        if (error) throw error
-        toast.success('Cobrado: ' + fmt(total))
-        await loadHistorial()
+        const { enCola } = await insertarSeguro('ventas', { ...base, tipo: 'cobrado' })
+        toast.success(enCola ? '📴 Sin internet: venta guardada (' + fmt(total) + '), se subirá sola' : 'Cobrado: ' + fmt(total))
+        if (!enCola) await loadHistorial()
       }
       setTicket([])
     } catch (e) { toast.error('Error: ' + e.message) }
@@ -142,9 +156,12 @@ export default function VentasPage() {
         </select>
         {cliId && <Btn variant="gold" size="sm" onClick={repetirUltimo} style={{ marginLeft: 8 }}>↺ Lo de siempre</Btn>}
       </div>
+      <div style={{ position: 'relative', marginBottom: 10, maxWidth: 420 }}>
+        <input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="🔍 Buscar producto…" aria-label="Buscar producto" style={{ fontSize: 16, padding: '11px 14px' }} />
+      </div>
       <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 4, marginBottom: 10, scrollbarWidth: 'none' }}>
         {['todas', ...categoriasDisponibles].map(c => (
-          <button key={c} onClick={() => setCatActiva(c)} style={{ padding: '5px 11px', borderRadius: 20, border: '1.5px solid ' + (catActiva === c ? 'var(--bor2)' : 'var(--bor)'), background: catActiva === c ? 'var(--purbg)' : 'transparent', color: catActiva === c ? 'var(--pur)' : 'var(--txt2)', fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <button key={c} onClick={() => { setCatActiva(c); setBusqueda('') }} style={{ padding: '9px 14px', borderRadius: 20, border: '1.5px solid ' + (catActiva === c ? 'var(--bor2)' : 'var(--bor)'), background: catActiva === c ? 'var(--purbg)' : 'transparent', color: catActiva === c ? 'var(--pur)' : 'var(--txt2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {c === 'todas' ? 'Todos' : getEmoji(c) + ' ' + c}
           </button>
         ))}

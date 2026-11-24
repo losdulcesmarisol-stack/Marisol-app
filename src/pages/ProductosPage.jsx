@@ -41,7 +41,6 @@ export default function ProductosPage() {
   }
 
   async function handleDelete(id, nombre) {
-    if (!window.confirm('Eliminar el producto ' + nombre + '?')) return
     await remove(id)
   }
 

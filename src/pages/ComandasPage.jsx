@@ -6,6 +6,7 @@ import { useClientes } from '../hooks/useClientes'
 import { fmt, todayStr, labelFecha, horaStr } from '../lib/utils'
 import { SectionHeader, FilterTabs, Loading, Empty, Btn, Modal, ModalFooter, Tag } from '../components/ui'
 import toast from 'react-hot-toast'
+import { avisoDeshacer } from '../lib/deshacer'
 
 const FILTROS = [
   { value: 'pend', label: 'Pendientes' },
@@ -139,12 +140,16 @@ export default function ComandasPage() {
   }
 
   async function cancelar(id) {
-    if (!window.confirm('Cancelar esta comanda?')) return
+    const copia = comandas.find(c => c.id === id)
     const { error } = await supabase.from('comandas').delete().eq('id', id)
     if (error) { toast.error('Error al cancelar'); return }
-    toast.success('Comanda cancelada')
     await load()
     refreshPendientes()
+    if (copia) avisoDeshacer(`Comanda de ${copia.cliente_nombre} cancelada`, async () => {
+      const { error: e } = await supabase.from('comandas').insert(copia)
+      if (e) throw e
+      await load(); refreshPendientes()
+    })
   }
 
   const grupos = {}
@@ -190,13 +195,13 @@ export default function ComandasPage() {
 
               {/* RESUMEN PARA EL PANADERO */}
               {resumenArr.length > 0 && (
-                <div style={{ background:'linear-gradient(135deg,var(--purbg),#f6eedb)', border:'1.5px solid var(--bor2)', borderRadius:'var(--rl)', padding:'12px 14px', marginBottom:10 }}>
+                <div style={{ background:'linear-gradient(135deg,var(--purbg),var(--sur2))', border:'1.5px solid var(--bor2)', borderRadius:'var(--rl)', padding:'12px 14px', marginBottom:10 }}>
                   <div style={{ fontSize:11,fontWeight:700,color:'var(--pur)',textTransform:'uppercase',letterSpacing:1,marginBottom:8 }}>
                     Resumen para el panadero
                   </div>
                   <div style={{ display:'flex',flexWrap:'wrap',gap:7 }}>
                     {resumenArr.map((r, i) => (
-                      <div key={i} style={{ background:'#fff',border:'1px solid var(--bor2)',borderRadius:9,padding:'7px 12px',display:'flex',alignItems:'center',gap:7,fontSize:13 }}>
+                      <div key={i} style={{ background:'var(--sur)',border:'1px solid var(--bor2)',borderRadius:9,padding:'7px 12px',display:'flex',alignItems:'center',gap:7,fontSize:13 }}>
                         <span style={{ fontSize:18 }}>{r.icono}</span>
                         <span style={{ fontWeight:600 }}>{r.nombre}</span>
                         <span style={{ background:'var(--pur)',color:'#fff',borderRadius:6,padding:'2px 8px',fontWeight:700,fontSize:14 }}>{r.qty}</span>
