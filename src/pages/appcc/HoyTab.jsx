@@ -65,33 +65,38 @@ export default function HoyTab({ irA }) {
     const mal = filas.find(f => isNaN(f.v)); if (mal) return toast.error('Falta la temperatura de ' + mal.e.nombre)
     const sinC = filas.filter(f => fueraRango(f.e, f.v) && !f.c)
     if (sinC.length) return toast.error('Di qué se ha hecho con: ' + sinC.map(f => f.e.nombre).join(', '))
+    if (guardando) return
     setGuardando(true)
-    const { error } = await supabase.from('appcc_temperaturas').insert(filas.map(f => ({
+    const { data, error } = await supabase.from('appcc_temperaturas').insert(filas.map(f => ({
       equipo_id: f.e.id, valor: f.v, fuera_rango: fueraRango(f.e, f.v), correctora: fueraRango(f.e, f.v) ? f.c : null,
       usuario_id: user?.id, usuario_nombre: user?.nombre,
-    })))
+    }))).select()
     setGuardando(false)
     if (error) return toast.error('Error: ' + error.message)
-    toast.success('Temperaturas guardadas'); setDraft(null); cargar()
+    // se muestra al momento como apuntado, para que no se pueda guardar dos veces
+    setD(prev => ({ ...prev, temps: [...data, ...prev.temps] }))
+    toast.success('Temperaturas guardadas'); setDraft(null)
   }
 
   const tareasHoy = tareasDelDia(d.tareas, hoy)
   const incid = id => d.incid.find(i => i.tarea_id === id)
   async function guardarNoHecha(t) {
     if (!motivo.trim()) return toast.error('Escribe por qué no se ha hecho')
-    const { error } = await supabase.from('limpieza_incidencias').insert({ tarea_id: t.id, fecha: hoy, motivo: motivo.trim(), usuario_id: user?.id, usuario_nombre: user?.nombre })
+    const { data, error } = await supabase.from('limpieza_incidencias').insert({ tarea_id: t.id, fecha: hoy, motivo: motivo.trim(), usuario_id: user?.id, usuario_nombre: user?.nombre }).select().single()
     if (error) return toast.error('Error: ' + error.message)
-    setMotivoPara(null); setMotivo(''); toast.success('Apuntado'); cargar()
+    setD(prev => ({ ...prev, incid: [...prev.incid, data] }))
+    setMotivoPara(null); setMotivo(''); toast.success('Apuntado')
   }
   async function deshacer(i) {
     const { error } = await supabase.from('limpieza_incidencias').delete().eq('id', i.id)
     if (error) return toast.error('Error: ' + error.message)
-    cargar()
+    setD(prev => ({ ...prev, incid: prev.incid.filter(x => x.id !== i.id) }))
   }
   async function firmarRevision() {
-    const { error } = await supabase.from('limpieza_verificaciones').insert({ mes, fecha: hoy, observaciones: obsVerif.trim() || 'Todo correcto', usuario_id: user?.id, usuario_nombre: user?.nombre })
-    if (error) return toast.error('Error: ' + error.message)
-    toast.success('Revisión del mes firmada'); cargar()
+    const { data, error } = await supabase.from('limpieza_verificaciones').insert({ mes, fecha: hoy, observaciones: obsVerif.trim() || 'Todo correcto', usuario_id: user?.id, usuario_nombre: user?.nombre }).select().single()
+    if (error) return toast.error(error.code === '23505' ? 'La revisión de este mes ya está firmada' : 'Error: ' + error.message)
+    setD(prev => ({ ...prev, verif: [...prev.verif, data] }))
+    toast.success('Revisión del mes firmada')
   }
 
   const nombreMat = id => d.materias.find(m => m.id === id)
