@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { fmt, todayStr, getDiaPanadero, sumarDias, horaStr } from '../lib/utils'
+import { useAuth } from '../context/AuthContext'
 import { Card, CardTitle, Grid2, Grid4, StatCard, Banner, Loading, Empty } from '../components/ui'
 
 export default function DashboardPage() {
+  const { user } = useAuth()
   const [stats, setStats] = useState({ ventas: 0, pedidos: 0, comandas: 0, clientes: 0 })
   const [statsAyer, setStatsAyer] = useState({ ventas: 0, pedidos: 0 })
   const [chart, setChart] = useState([])
@@ -100,7 +102,7 @@ export default function DashboardPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 9 }}>
         <div>
           <h2 style={{ fontFamily: "var(--serif)", fontWeight: 400, fontSize: 28, color: 'var(--pur)' }} id="saludo">
-            {dp.turno === 'tarde' ? 'Buenas tardes ☀️' : dp.turno === 'noche' ? 'Buenas noches 🌙' : 'Buenos días 🌅'}, Marisol
+            {dp.turno === 'tarde' ? 'Buenas tardes ☀️' : dp.turno === 'noche' ? 'Buenas noches 🌙' : 'Buenos días 🌅'}, {(user?.nombre || '').split(' ')[0]}
           </h2>
           <p style={{ fontSize: 12, color: 'var(--txt3)', marginTop: 2 }}>
             {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}

@@ -33,8 +33,10 @@ export default function ComandasPage() {
   const load = useCallback(async () => {
     setLoading(true)
     let q = supabase.from('comandas').select('*').order('fecha_entrega').order('hora_registro')
+    // Las comandas dejadas «a cuenta» no salen aquí: están en la ficha de su cliente
     if (filtro === 'pend') q = q.eq('estado', 'pendiente')
     else if (filtro === 'cobradas') q = q.eq('estado', 'cobrada')
+    else q = q.neq('estado', 'a_cuenta')
     const { data, error } = await q
     if (error) toast.error('Error cargando comandas')
     setComandas(data || [])
@@ -93,6 +95,18 @@ export default function ComandasPage() {
   function openCobrar(c) {
     setCobrarId(c.id)
     setCobrarData(c)
+  }
+
+  // Entregada pero sin pagar: pasa a la cuenta del cliente (sale de Comandas)
+  async function dejarACuenta() {
+    if (!cobrarId || !cobrarData?.cliente_id) return
+    setSaving(true)
+    const { error } = await supabase.from('comandas').update({ estado: 'a_cuenta', fecha_a_cuenta: todayStr() }).eq('id', cobrarId)
+    setSaving(false)
+    if (error) { toast.error('Error: ' + error.message); return }
+    toast.success('Pendiente de pago en la cuenta de ' + cobrarData.cliente_nombre)
+    setCobrarId(null); setCobrarData(null)
+    await load(); refreshPendientes()
   }
 
   async function confirmarCobro() {
@@ -302,10 +316,16 @@ export default function ComandasPage() {
             </div>
           </>
         )}
+        {cobrarData && !cobrarData.cliente_id && (
+          <p style={{ fontSize: 12, color: 'var(--txt3)', margin: '10px 0 0' }}>Para dejarla pendiente de pago, la comanda tiene que ser de un cliente.</p>
+        )}
         <ModalFooter>
           <Btn variant="ghost" onClick={() => setCobrarId(null)}>Cancelar</Btn>
+          {cobrarData?.cliente_id && (
+            <Btn variant="ghost" onClick={dejarACuenta} disabled={saving}>Dejar pendiente de pago</Btn>
+          )}
           <Btn variant="success" onClick={confirmarCobro} disabled={saving}>
-            {saving ? 'Procesando...' : 'Confirmar cobro'}
+            {saving ? 'Procesando...' : 'Cobrar ahora'}
           </Btn>
         </ModalFooter>
       </Modal>

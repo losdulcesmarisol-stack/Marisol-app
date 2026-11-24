@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(true)
   const [entrando, setEntrando] = useState(false)
 
-  useEffect(() => { if (user) navigate('/', { replace: true }) }, [user])
+  useEffect(() => { if (user && !entrando) navigate('/', { replace: true }) }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Solo nombre y rol: los PIN nunca salen del servidor
@@ -52,7 +52,9 @@ export default function LoginPage() {
       return
     }
     toast.success('Bienvenida, ' + (u?.nombre || ''))
-    navigate('/', { replace: true })
+    // Cada persona empieza en su pantalla (se elige en Usuarios)
+    const { data: pref } = await supabase.from('usuarios').select('inicio').eq('id', selId).maybeSingle()
+    navigate(pref?.inicio || '/', { replace: true })
   }
 
   const keys = ['1','2','3','4','5','6','7','8','9','C','0','OK']
