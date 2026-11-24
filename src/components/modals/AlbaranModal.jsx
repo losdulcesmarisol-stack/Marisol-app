@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { fmt, todayStr } from '../../lib/utils'
+import { loteDe } from '../../lib/appcc'
 import { Modal, ModalFooter, Btn, FormGroup, Grid2 } from '../ui'
 import toast from 'react-hot-toast'
 
@@ -97,6 +98,7 @@ export default function AlbaranModal({ cliente, productos, onClose }) {
           <div class="alb-title">ALBARÁN</div>
           <div class="alb-num">${alb.numero}</div>
           <div class="alb-date">${new Date(alb.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+          <div class="alb-date">Lote: <strong>${loteDe(alb.fecha)}</strong> (fecha de fabricación)</div>
         </div>
       </div>
       <div class="cli-box">

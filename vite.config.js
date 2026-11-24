@@ -24,8 +24,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // La demo de APPCC es una página aparte: no sustituirla por la app al abrirla
-        navigateFallbackDenylist: [/^\/appcc-demo\.html/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/lkcoxxcwtsvdyjeyyqll\.supabase\.co\/rest\//,
