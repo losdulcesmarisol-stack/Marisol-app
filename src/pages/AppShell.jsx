@@ -42,6 +42,7 @@ export default function AppShell() {
     { to: '/comandas', icon: '📋', label: 'Comandas', badge: pendientes },
     { to: '/produccion', icon: '🏭', label: 'Produccion' },
     { to: '/proveedores', icon: '🚚', label: 'Proveedores' },
+    { to: '/appcc', icon: '✅', label: 'APPCC' },
     ...(isAdmin ? [{ to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
   ]
 

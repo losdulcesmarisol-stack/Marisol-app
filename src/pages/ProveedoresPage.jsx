@@ -55,8 +55,10 @@ export default function ProveedoresPage() {
     if (!formProv.nombre.trim()) { toast.error('Nombre obligatorio'); return }
     setSavingP(true)
     try {
-      if (editProvId) await supabase.from('proveedores').update(formProv).eq('id', editProvId)
-      else await supabase.from('proveedores').insert(formProv)
+      const { error } = editProvId
+        ? await supabase.from('proveedores').update(formProv).eq('id', editProvId)
+        : await supabase.from('proveedores').insert(formProv)
+      if (error) throw error
       toast.success('Proveedor guardado')
       setModalProv(false)
       await loadProveedores()
@@ -66,7 +68,8 @@ export default function ProveedoresPage() {
 
   async function delProv(id, nom) {
     if (!window.confirm('Eliminar proveedor ' + nom + '?')) return
-    await supabase.from('proveedores').update({ activo: false }).eq('id', id)
+    const { error } = await supabase.from('proveedores').update({ activo: false }).eq('id', id)
+    if (error) { toast.error('Error: ' + error.message); return }
     toast.success('Eliminado')
     await loadProveedores()
   }
@@ -117,9 +120,10 @@ export default function ProveedoresPage() {
         const ext = fotoFile.name.split('.').pop()
         const path = `${facData.provId}/${Date.now()}.${ext}`
         const { error: ue } = await supabase.storage.from('facturas').upload(path, fotoFile, { upsert: true })
-        if (!ue) { const { data: ud } = supabase.storage.from('facturas').getPublicUrl(path); fotoUrl = ud.publicUrl }
+        if (ue) throw new Error('No se pudo subir la foto de la factura: ' + ue.message)
+        const { data: ud } = supabase.storage.from('facturas').getPublicUrl(path); fotoUrl = ud.publicUrl
       }
-      await supabase.from('facturas').insert({
+      const { error: fe } = await supabase.from('facturas').insert({
         proveedor_id: facData.provId,
         proveedor_nombre: prov?.nombre || '',
         numero_factura: facData.num,
@@ -131,6 +135,7 @@ export default function ProveedoresPage() {
         notas: facData.not,
         estado: 'pendiente'
       })
+      if (fe) throw fe
       toast.success('Factura guardada')
       setModalFac(false)
       await loadFacturas()
@@ -139,7 +144,8 @@ export default function ProveedoresPage() {
   }
 
   async function marcarPagada(id) {
-    await supabase.from('facturas').update({ estado: 'pagada' }).eq('id', id)
+    const { error } = await supabase.from('facturas').update({ estado: 'pagada' }).eq('id', id)
+    if (error) { toast.error('Error: ' + error.message); return }
     toast.success('Marcada como pagada')
     await loadFacturas()
   }

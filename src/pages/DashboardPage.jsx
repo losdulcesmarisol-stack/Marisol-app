@@ -1,7 +1,7 @@
 // src/pages/DashboardPage.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { fmt, todayStr, getDiaPanadero } from '../lib/utils'
+import { fmt, todayStr, getDiaPanadero, sumarDias, horaStr } from '../lib/utils'
 import { Card, CardTitle, Grid2, Grid4, StatCard, Banner, Loading, Empty } from '../components/ui'
 
 export default function DashboardPage() {
@@ -19,8 +19,8 @@ export default function DashboardPage() {
   async function load() {
     setLoading(true)
     const hoy = todayStr()
-    const ayer = (() => { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10) })()
-    const man  = (() => { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10) })()
+    const ayer = sumarDias(hoy, -1)
+    const man  = sumarDias(hoy, 1)
 
     const [vHoy, vAyer, pend, nCli] = await Promise.all([
       supabase.from('ventas').select('total,items').eq('fecha_registro', hoy),
@@ -36,7 +36,7 @@ export default function DashboardPage() {
 
     // Chart 7 días
     const dias = []
-    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate()-i); dias.push(d.toISOString().slice(0,10)) }
+    for (let i = 6; i >= 0; i--) dias.push(sumarDias(todayStr(), -i))
     const chartRes = await Promise.all(dias.map(d => supabase.from('ventas').select('total').eq('fecha_registro', d)))
     const tots = chartRes.map(r => (r.data||[]).reduce((s,v) => s+parseFloat(v.total||0), 0))
     const max = Math.max(...tots, 1)
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       </div>
 
       <Banner>
-        🕐 <strong>{new Date().toTimeString().slice(0, 5)}</strong> · Turno: <strong>{dp.turno}</strong> · Pedidos de ahora son para <strong>{dp.label}</strong>
+        🕐 <strong>{horaStr()}</strong> · Turno: <strong>{dp.turno}</strong> · Pedidos de ahora son para <strong>{dp.label}</strong>
       </Banner>
 
       {loading ? <Loading /> : (

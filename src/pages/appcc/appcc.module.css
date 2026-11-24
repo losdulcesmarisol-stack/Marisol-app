@@ -1,0 +1,58 @@
+/* src/pages/appcc/appcc.module.css */
+.tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; padding-bottom: 2px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--bor2); background: var(--sur); color: var(--txt2); font-weight: 600; font-size: 13px; white-space: nowrap; position: relative; }
+.tab:hover { border-color: var(--pur); color: var(--pur); }
+.tabOn { background: var(--pur); color: #fff; border-color: var(--pur); }
+.tabOn:hover { color: #fff; }
+.dot { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--err); color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+
+.stack { display: grid; gap: 14px; }
+.okbox { background: rgba(42,122,72,.1); border: 1px solid rgba(42,122,72,.28); color: var(--ok); border-radius: var(--r); padding: 12px 14px; font-weight: 600; }
+.warnbox { background: rgba(181,46,30,.07); border: 1px solid rgba(181,46,30,.25); color: var(--err); border-radius: var(--r); padding: 10px 12px; }
+.note { background: var(--sur3); border: 1px dashed var(--bor2); border-radius: var(--r); padding: 10px 12px; font-size: 13px; color: var(--txt2); }
+.muted { color: var(--txt3); font-size: 13px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.grow { flex: 1; min-width: 160px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Temperaturas */
+.trows { display: grid; gap: 8px; margin-bottom: 10px; }
+.trow { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--bor); border-radius: var(--r); background: var(--sur2); }
+.trowMal { border-color: rgba(181,46,30,.45); background: rgba(181,46,30,.06); }
+.corr { grid-column: 1 / -1; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper button { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid var(--bor2); background: #fff; font-size: 22px; font-weight: 700; color: var(--pur); }
+.stepper input { width: 78px; text-align: center; font-size: 19px; font-weight: 700; padding: 6px; }
+.sens { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sen { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid rgba(42,122,72,.25); background: rgba(42,122,72,.07); border-radius: var(--r); }
+.senMal { background: rgba(181,46,30,.07); border-color: rgba(181,46,30,.35); }
+.senV { font-size: 22px; font-weight: 700; color: var(--choc); font-variant-numeric: tabular-nums; }
+.senMal .senV { color: var(--err); }
+
+/* Listas */
+.list { display: grid; gap: 8px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--bor); border-radius: var(--r); background: var(--sur2); flex-wrap: wrap; }
+.itemOk { background: rgba(42,122,72,.07); border-color: rgba(42,122,72,.25); }
+.check { width: 24px; height: 24px; border-radius: 7px; background: var(--ok); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.checkNo { background: transparent; border: 2px solid var(--bor2); }
+.lote { font-size: 28px; font-weight: 700; color: var(--pur); letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+.usar { background: rgba(209,165,62,.14); border: 1px solid var(--gold); border-radius: var(--r); padding: 6px 10px; font-size: 13px; }
+
+/* Tablas de formulario */
+.ftable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ftable th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--txt2); padding: 6px 4px; }
+.ftable td { padding: 4px; vertical-align: middle; }
+.ftable input, .ftable select { padding: 7px 8px; font-size: 13px; }
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Alérgenos */
+.vhead { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; font-size: 10px; }
+.al { text-align: center; }
+.alSi { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--err); }
+.alNo { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--bor); }
+.cartel { background: #fff; border: 2px solid var(--pur); border-radius: var(--rl); padding: 18px; }
+
+@media (max-width: 640px) {
+  .trow { grid-template-columns: 1fr; }
+}
