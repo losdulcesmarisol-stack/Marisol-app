@@ -7,7 +7,14 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+// Si la app se carga dentro de otra copia de sí misma (versión antigua guardada en el
+// navegador, que mostraba la demo del APPCC en un recuadro), se recarga la página
+// completa para quedarse con la versión nueva, en vez de salir con la barra duplicada.
+let dentroDeOtraCopia = false
+try { dentroDeOtraCopia = window.top !== window.self && window.top.location.origin === window.location.origin } catch { /* otro dominio */ }
+if (dentroDeOtraCopia) {
+  window.top.location.replace('/appcc')
+} else ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
