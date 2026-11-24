@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { useProductos } from '../hooks/useProductos'
 import { useClientes } from '../hooks/useClientes'
 import { supabase } from '../lib/supabase'
-import { fmt, todayStr, getDiaPanadero, labelFecha, getEmoji, CAT_EMOJI } from '../lib/utils'
+import { fmt, todayStr, getDiaPanadero, labelFecha, getEmoji, CAT_EMOJI, horaStr } from '../lib/utils'
 import { Card, CardTitle, SectionHeader, Btn, Tag, Loading, Empty, Banner } from '../components/ui'
 import toast from 'react-hot-toast'
 import styles from './VentasPage.module.css'
@@ -95,8 +95,7 @@ export default function VentasPage() {
 
   async function registrar(esComanda) {
     if (!ticket.length) { toast.error('El ticket esta vacio'); return }
-    const now = new Date()
-    const base = { fecha_registro: todayStr(), hora_registro: now.toTimeString().slice(0, 5), fecha_entrega: fechaCustom || dp.fechaEntrega, cliente_id: cliId || null, cliente_nombre: cli ? cli.nombre : 'Directo', items: ticket, total }
+    const base = { fecha_registro: todayStr(), hora_registro: horaStr(), fecha_entrega: fechaCustom || dp.fechaEntrega, cliente_id: cliId || null, cliente_nombre: cli ? cli.nombre : 'Directo', items: ticket, total }
     try {
       if (esComanda) {
         const { error } = await supabase.from('comandas').insert({ ...base, estado: 'pendiente' })

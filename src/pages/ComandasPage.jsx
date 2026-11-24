@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useProductos } from '../hooks/useProductos'
-import { fmt, todayStr, labelFecha } from '../lib/utils'
+import { useClientes } from '../hooks/useClientes'
+import { fmt, todayStr, labelFecha, horaStr } from '../lib/utils'
 import { SectionHeader, FilterTabs, Loading, Empty, Btn, Modal, ModalFooter, Tag } from '../components/ui'
 import toast from 'react-hot-toast'
 
@@ -15,6 +16,7 @@ const FILTROS = [
 export default function ComandasPage() {
   const { refreshPendientes } = useOutletContext()
   const { productos } = useProductos()
+  const { clientes } = useClientes()
   const [filtro, setFiltro] = useState('pend')
   const [comandas, setComandas] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,18 +43,33 @@ export default function ComandasPage() {
 
   useEffect(() => { load() }, [load])
 
-  function abrirEdicion(cmd){
+  // Editar: solo se muestra lo que lleva la comanda. Se pueden añadir productos
+  // del catálogo o quitar líneas; al guardar se descartan las líneas a 0.
+  function abrirEdicion(cmd) {
     setEditandoComanda(cmd)
-    const saved = cmd.items || []
-    const todos = productos.map(pr => {
-      const existe = saved.find(i => i.prodId === pr.id || i.nombre === pr.nombre)
-      return existe ? existe : { prodId: pr.id, nombre: pr.nombre, icono: pr.icono || '', qty: 0, precio: pr.precio || 0 }
-    })
-    const extras = saved.filter(s => !productos.find(pr => pr.id === s.prodId || pr.nombre === s.nombre))
-    setEditItems([...todos, ...extras])
+    setEditItems((cmd.items || []).map(i => ({ ...i })))
   }
-  function updateQty(idx,val){setEditItems(p=>p.map((it,i)=>i===idx?{...it,qty:parseFloat(val)||0}:it))}
-  async function guardarEdicion(){setGuardandoEdit(true);try{const tot=editItems.reduce((s,i)=>s+(i.qty*i.precio),0);const{error}=await supabase.from("comandas").update({items:editItems,total:Math.round(tot*100)/100}).eq("id",editandoComanda.id);if(error)throw error;setComandas(p=>p.map(c=>c.id===editandoComanda.id?{...c,items:editItems,total:Math.round(tot*100)/100}:c));setEditandoComanda(null);toast.success("Comanda actualizada")}catch(e){toast.error("Error: "+e.message)}setGuardandoEdit(false)}
+  function updateQty(idx, val) { setEditItems(p => p.map((it, i) => i === idx ? { ...it, qty: parseFloat(String(val).replace(',', '.')) || 0 } : it)) }
+  function quitarLinea(idx) { setEditItems(p => p.filter((_, i) => i !== idx)) }
+  function anadirProducto(id) {
+    const pr = productos.find(x => x.id === id); if (!pr) return
+    const pe = clientes.find(c => c.id === editandoComanda?.cliente_id)?.precios_especiales?.[pr.id]
+    setEditItems(p => [...p, { prodId: pr.id, nombre: pr.nombre, icono: pr.icono || '', qty: 1, precio: pe > 0 ? pe : (pr.precio || 0) }])
+  }
+  async function guardarEdicion() {
+    const items = editItems.filter(i => i.qty > 0)
+    if (!items.length) { toast.error('La comanda tiene que llevar al menos un producto. Si no, cancélala.'); return }
+    const total = Math.round(items.reduce((s, i) => s + i.qty * i.precio, 0) * 100) / 100
+    setGuardandoEdit(true)
+    try {
+      const { error } = await supabase.from('comandas').update({ items, total }).eq('id', editandoComanda.id)
+      if (error) throw error
+      setComandas(p => p.map(c => c.id === editandoComanda.id ? { ...c, items, total } : c))
+      setEditandoComanda(null)
+      toast.success('Comanda actualizada')
+    } catch (e) { toast.error('Error: ' + e.message) }
+    setGuardandoEdit(false)
+  }
   function abrirNota(comanda) {
     setEditandoNota(comanda.id)
     setNotaTexto(comanda.notas_panadero || '')
@@ -86,7 +103,7 @@ export default function ComandasPage() {
       if (e1) throw e1
       const { error: e2 } = await supabase.from('ventas').insert({
         fecha_registro: todayStr(),
-        hora_registro: new Date().toTimeString().slice(0, 5),
+        hora_registro: horaStr(),
         fecha_entrega: cobrarData.fecha_entrega,
         cliente_id: cobrarData.cliente_id,
         cliente_nombre: cobrarData.cliente_nombre,
@@ -260,7 +277,8 @@ export default function ComandasPage() {
       )}
 
       <Modal open={!!editandoComanda} onClose={()=>setEditandoComanda(null)} title="✏️ Editar comanda" wide>
-        {editandoComanda&&(<><div style={{marginBottom:12}}><strong>{editandoComanda.cliente_nombre}</strong><span style={{fontSize:12,color:"var(--txt3)",marginLeft:8}}>{labelFecha(editandoComanda.fecha_entrega)}</span></div><div style={{border:"1px solid var(--bor)",borderRadius:8,overflow:"hidden",marginBottom:12}}><div style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"7px 12px",background:"var(--purbg)",fontSize:11,fontWeight:700,color:"var(--pur)"}}><span>Producto</span><span style={{textAlign:"center"}}>Cantidad</span><span style={{textAlign:"right"}}>Subtotal</span></div>{editItems.map((it,idx)=>(<div key={idx} style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"8px 12px",borderTop:"1px solid var(--bor)",alignItems:"center"}}><span>{it.icono||""} {it.nombre}</span><input type="number" min="0" step="0.5" value={it.qty} onChange={e=>updateQty(idx,e.target.value)} style={{width:"100%",padding:"5px 6px",borderRadius:6,border:"1.5px solid var(--pur)",textAlign:"center",fontSize:14,fontWeight:600}}/><span style={{textAlign:"right",color:"var(--txt2)"}}>€{(it.qty*it.precio).toFixed(2)}</span></div>))}<div style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"8px 12px",borderTop:"2px solid var(--bor)",fontWeight:700}}><span>TOTAL</span><span/><span style={{textAlign:"right",color:"var(--pur)"}}>€{editItems.reduce((s,i)=>s+i.qty*i.precio,0).toFixed(2)}</span></div></div><ModalFooter><Btn variant="ghost" onClick={()=>setEditandoComanda(null)}>Cancelar</Btn><Btn onClick={guardarEdicion} disabled={guardandoEdit}>{guardandoEdit?"Guardando...":"Guardar cambios"}</Btn></ModalFooter></> )}
+        {editandoComanda&&(<><div style={{marginBottom:12}}><strong>{editandoComanda.cliente_nombre}</strong><span style={{fontSize:12,color:"var(--txt3)",marginLeft:8}}>{labelFecha(editandoComanda.fecha_entrega)}</span></div><div style={{border:"1px solid var(--bor)",borderRadius:8,overflow:"hidden",marginBottom:12}}><div style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"7px 12px",background:"var(--purbg)",fontSize:11,fontWeight:700,color:"var(--pur)"}}><span>Producto</span><span style={{textAlign:"center"}}>Cantidad</span><span style={{textAlign:"right"}}>Subtotal</span></div>{editItems.map((it,idx)=>(<div key={idx} style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"8px 12px",borderTop:"1px solid var(--bor)",alignItems:"center",opacity:it.qty>0?1:.5}}><span style={{display:"flex",alignItems:"center",gap:6}}><button type="button" onClick={()=>quitarLinea(idx)} aria-label={"Quitar "+it.nombre} title="Quitar de la comanda" style={{border:"none",background:"none",color:"var(--err)",fontSize:16,cursor:"pointer",padding:0}}>✕</button>{it.icono||""} {it.nombre}</span><input type="number" min="0" step="0.5" value={it.qty} onChange={e=>updateQty(idx,e.target.value)} style={{width:"100%",padding:"5px 6px",borderRadius:6,border:"1.5px solid var(--pur)",textAlign:"center",fontSize:14,fontWeight:600}}/><span style={{textAlign:"right",color:"var(--txt2)"}}>€{(it.qty*it.precio).toFixed(2)}</span></div>))}
+<div style={{padding:"8px 12px",borderTop:"1px solid var(--bor)"}}><select value="" onChange={e=>anadirProducto(e.target.value)} aria-label="Añadir producto a la comanda"><option value="">+ Añadir producto…</option>{productos.filter(pr=>!editItems.some(it=>it.prodId===pr.id||it.nombre===pr.nombre)).map(pr=>(<option key={pr.id} value={pr.id}>{pr.icono||""} {pr.nombre}</option>))}</select></div><div style={{display:"grid",gridTemplateColumns:"1fr 90px 90px",gap:8,padding:"8px 12px",borderTop:"2px solid var(--bor)",fontWeight:700}}><span>TOTAL</span><span/><span style={{textAlign:"right",color:"var(--pur)"}}>€{editItems.reduce((s,i)=>s+(i.qty>0?i.qty*i.precio:0),0).toFixed(2)}</span></div></div><ModalFooter><Btn variant="ghost" onClick={()=>setEditandoComanda(null)}>Cancelar</Btn><Btn onClick={guardarEdicion} disabled={guardandoEdit}>{guardandoEdit?"Guardando...":"Guardar cambios"}</Btn></ModalFooter></> )}
       </Modal>
 
       <Modal open={!!cobrarId} onClose={() => setCobrarId(null)} title="Cobrar comanda">
