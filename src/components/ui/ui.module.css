@@ -119,7 +119,7 @@
 /* ── STAT CARD ── */
 .sc { background: var(--sur); border: 1px solid var(--bor); border-top: 3px solid var(--gold); border-radius: var(--rl); padding: 16px; box-shadow: var(--sh); }
 .sci { font-size: 22px; margin-bottom: 6px; }
-.scv { font-size: 28px; font-weight: 700; color: var(--choc); line-height: 1; letter-spacing: -.5px; }
+.scv { font-size: 28px; font-weight: 700; color: var(--txt); line-height: 1; letter-spacing: -.5px; }
 .scl { font-size: 10px; color: var(--txt3); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 .scd { font-size: 11px; margin-top: 4px; font-weight: 600; color: var(--txt3); }
 .sup { color: var(--ok); }
@@ -127,7 +127,7 @@
 
 /* ── BANNER ── */
 .dbn {
-  background: linear-gradient(135deg, var(--purbg), #f6eedb);
+  background: linear-gradient(135deg, var(--purbg), var(--sur2));
   border: 1px solid var(--bor2); border-radius: var(--r);
   padding: 9px 14px; font-size: 12px; color: var(--txt2); margin-bottom: 14px;
 }

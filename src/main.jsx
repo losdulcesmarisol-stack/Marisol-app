@@ -6,6 +6,9 @@ import { Toaster } from 'react-hot-toast'
 import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
+import { aplicarTema } from './lib/tema'
+
+aplicarTema()
 
 // Si la app se carga dentro de otra copia de sí misma (versión antigua guardada en el
 // navegador, que mostraba la demo del APPCC en un recuadro), se recarga la página

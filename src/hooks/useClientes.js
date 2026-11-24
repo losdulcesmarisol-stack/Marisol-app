@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { avisoDeshacer } from '../lib/deshacer'
 
 export function useClientes() {
   const [clientes, setClientes] = useState([])
@@ -53,8 +54,12 @@ export function useClientes() {
     try {
       const { error } = await supabase.from('clientes').update({ activo: false }).eq('id', id)
       if (error) throw error
-      toast.success('Cliente eliminado 🗑')
       await load()
+      avisoDeshacer('Cliente eliminado', async () => {
+        const { error: e } = await supabase.from('clientes').update({ activo: true }).eq('id', id)
+        if (e) throw e
+        await load()
+      })
     } catch (e) {
       toast.error('Error: ' + e.message)
     }

@@ -6,9 +6,40 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import logoUrl from '/logo.png'
 import styles from './AppShell.module.css'
+import { temaActual, cambiarTema } from '../lib/tema'
+import { subirCola, pendientesOffline } from '../lib/colaOffline'
 
 export default function AppShell() {
   const { user, logout, isAdmin } = useAuth()
+  const [tema, setTema] = useState(temaActual)
+  const [enLinea, setEnLinea] = useState(navigator.onLine)
+  const [enCola, setEnCola] = useState(pendientesOffline)
+  const [instalar, setInstalar] = useState(null)
+  useEffect(() => {
+    const h = e => { e.preventDefault(); setInstalar(e) }
+    window.addEventListener('beforeinstallprompt', h)
+    return () => window.removeEventListener('beforeinstallprompt', h)
+  }, [])
+  async function instalarApp() {
+    if (!instalar) return
+    instalar.prompt()
+    await instalar.userChoice.catch(() => null)
+    setInstalar(null); setMasAbierto(false)
+  }
+
+  useEffect(() => {
+    const subir = async () => {
+      const n = await subirCola()
+      if (n > 0) { toast.success(`☁️ Subidas ${n} venta(s)/comanda(s) guardadas sin internet`); loadPendientes() }
+    }
+    const on = () => { setEnLinea(true); subir() }
+    const off = () => setEnLinea(false)
+    const cambio = e => setEnCola(e.detail)
+    window.addEventListener('online', on); window.addEventListener('offline', off); window.addEventListener('cola-offline', cambio)
+    subir()
+    const t = setInterval(subir, 30000)
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); window.removeEventListener('cola-offline', cambio); clearInterval(t) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const navigate = useNavigate()
   const location = useLocation()
   const [pendientes, setPendientes] = useState(0)
@@ -84,9 +115,17 @@ export default function AppShell() {
             <span className={styles.hname}>{user?.nombre}</span>
             <span className={styles.hrol}>{user?.rol}</span>
           </div>
+          <button className={styles.hout} onClick={() => setTema(cambiarTema())} aria-label={tema === 'oscuro' ? 'Poner modo claro' : 'Poner modo oscuro'} title={tema === 'oscuro' ? 'Modo claro' : 'Modo oscuro'}>{tema === 'oscuro' ? '☀️' : '🌙'}</button>
           <button className={styles.hout} onClick={handleLogout}>Salir</button>
         </div>
       </header>
+
+      {(!enLinea || enCola > 0) && (
+        <div role="status" style={{ background: enLinea ? 'var(--inf)' : 'var(--wrn)', color: '#fff', textAlign: 'center', padding: '7px 12px', fontSize: 13, fontWeight: 600 }}>
+          {!enLinea ? '📴 Sin internet. Puedes seguir cobrando y apuntando comandas: se guardan y se suben solas.' : `☁️ Subiendo ${enCola} pendiente(s)…`}
+          {enCola > 0 && !enLinea && ` (${enCola} guardada(s))`}
+        </div>
+      )}
 
       <main className={styles.main}>
         <Outlet context={{ refreshPendientes: loadPendientes }} />
@@ -102,6 +141,11 @@ export default function AppShell() {
                   <span className={styles.masIcon}>{icon}</span><span>{label}</span>
                 </button>
               ))}
+              {instalar && (
+                <button className={styles.masBtn} onClick={instalarApp}>
+                  <span className={styles.masIcon}>📲</span><span>Instalar app</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

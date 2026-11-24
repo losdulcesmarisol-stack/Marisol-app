@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { avisoDeshacer } from '../lib/deshacer'
 import { getEmoji } from '../lib/utils'
 
 export function useProductos() {
@@ -51,8 +52,12 @@ export function useProductos() {
     try {
       const { error } = await supabase.from('productos').update({ activo: false }).eq('id', id)
       if (error) throw error
-      toast.success('Producto eliminado 🗑')
       await load()
+      avisoDeshacer('Producto eliminado', async () => {
+        const { error: e } = await supabase.from('productos').update({ activo: true }).eq('id', id)
+        if (e) throw e
+        await load()
+      })
     } catch (e) {
       toast.error('Error: ' + e.message)
     }

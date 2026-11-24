@@ -24,12 +24,16 @@ export default function DashboardPage() {
     const ayer = sumarDias(hoy, -1)
     const man  = sumarDias(hoy, 1)
 
-    const [vHoy, vAyer, pend, nCli] = await Promise.all([
-      supabase.from('ventas').select('total,items').eq('fecha_registro', hoy),
-      supabase.from('ventas').select('total').eq('fecha_registro', ayer),
+    // Todo en una sola tanda (antes eran tres tandas seguidas y 7 consultas para la gráfica)
+    const hace6 = sumarDias(hoy, -6)
+    const [vSemana, pend, nCli, fact] = await Promise.all([
+      supabase.from('ventas').select('total,items,fecha_registro').gte('fecha_registro', hace6).lte('fecha_registro', hoy),
       supabase.from('comandas').select('*').eq('estado', 'pendiente'),
       supabase.from('clientes').select('*', { count: 'exact', head: true }).eq('activo', true),
+      supabase.from('facturas').select('items,fecha_factura,proveedor_nombre').order('fecha_factura'),
     ])
+    const deDia = f => ({ data: (vSemana.data || []).filter(v => v.fecha_registro === f) })
+    const vHoy = deDia(hoy), vAyer = deDia(ayer)
 
     const tH = (vHoy.data||[]).reduce((s,v) => s + parseFloat(v.total||0), 0)
     const tA = (vAyer.data||[]).reduce((s,v) => s + parseFloat(v.total||0), 0)
@@ -39,10 +43,9 @@ export default function DashboardPage() {
     // Chart 7 días
     const dias = []
     for (let i = 6; i >= 0; i--) dias.push(sumarDias(todayStr(), -i))
-    const chartRes = await Promise.all(dias.map(d => supabase.from('ventas').select('total').eq('fecha_registro', d)))
-    const tots = chartRes.map(r => (r.data||[]).reduce((s,v) => s+parseFloat(v.total||0), 0))
+    const tots = dias.map(d => deDia(d).data.reduce((s,v) => s+parseFloat(v.total||0), 0))
     const max = Math.max(...tots, 1)
-    const lbls = ['Lu','Ma','Mi','Ju','Vi','Sá','Do']
+    const lbls = ['Do','Lu','Ma','Mi','Ju','Vi','Sá'] // getDay(): 0 = domingo
     setChart(dias.map((d,i) => ({ dia: d, tot: tots[i], h: Math.max((tots[i]/max)*100, tots[i]>0?5:2), lbl: lbls[new Date(d+'T12:00:00').getDay()], esHoy: d===hoy })))
 
     // Top productos hoy
@@ -68,12 +71,11 @@ export default function DashboardPage() {
     setPendElabH({ count: prox.length, items: Object.values(res) })
 
     // Alertas de precios
-    await loadAlertas()
+    loadAlertas(fact.data)
     setLoading(false)
   }
 
-  async function loadAlertas() {
-    const { data } = await supabase.from('facturas').select('*').order('fecha_factura')
+  function loadAlertas(data) {
     if (!data?.length) return
     const hist = {}
     data.forEach(f => (f.items||[]).forEach(i => {
@@ -192,7 +194,7 @@ export default function DashboardPage() {
                     <div key={i} style={{ background:'var(--sur2)',border:'1px solid var(--bor2)',borderRadius:10,padding:'10px 14px',textAlign:'center',minWidth:80 }}>
                       <div style={{ fontSize: 22 }}>{r.ico || '🍞'}</div>
                       <div style={{ fontWeight: 600, fontSize: 12 }}>{r.nom}</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color:'var(--choc)' }}>{r.qty}</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color:'var(--txt)' }}>{r.qty}</div>
                       <div style={{ fontSize: 10, color: 'var(--txt3)' }}>uds</div>
                     </div>
                   ))}

@@ -30,6 +30,34 @@
   --sans: 'Source Sans 3', 'Source Sans Pro', Helvetica, Arial, sans-serif;
 }
 
+/* Modo oscuro (se activa con el botón 🌙 o si el móvil está en oscuro) */
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+  --bg: #17141f;
+  --sur: #221e2c;
+  --sur2: #2a2536;
+  --sur3: #332d41;
+  --bor: #3b3449;
+  --bor2: #514764;
+  --pur: #6f66c8;
+  --purl: #8b83dd;
+  --purd: #3d3778;
+  --purbg: #2b2742;
+  --gold: #dcb352;
+  --goldl: #ebcb7c;
+  --goldd: #c9a040;
+  --choc: #2a1b12;
+  --txt: #f1eae0;
+  --txt2: #c5b8a8;
+  --txt3: #8f8274;
+  --ok: #5fc48a;
+  --err: #f0806f;
+  --wrn: #f0a850;
+  --inf: #74aef0;
+  --sh: 0 2px 14px rgba(0, 0, 0, 0.35);
+  --shl: 0 10px 36px rgba(0, 0, 0, 0.5);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; }
 body {
@@ -57,7 +85,7 @@ input, select, textarea {
   outline: none;
   transition: border-color .2s;
 }
-input:focus, select:focus, textarea:focus { border-color: var(--pur); background: #fff; }
+input:focus, select:focus, textarea:focus { border-color: var(--pur); background: var(--sur); }
 input[readonly] { background: var(--sur3); cursor: default; }
 textarea { resize: vertical; min-height: 60px; }
 
