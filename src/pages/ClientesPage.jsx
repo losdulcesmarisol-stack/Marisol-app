@@ -1,5 +1,5 @@
 // src/pages/ClientesPage.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useClientes } from '../hooks/useClientes'
@@ -10,6 +10,8 @@ import {
   FormGroup, Grid2, Tag, Loading, Empty, LockOverlay, Table
 } from '../components/ui'
 import AlbaranModal from '../components/modals/AlbaranModal'
+import CuentaClienteModal from '../components/modals/CuentaClienteModal'
+import PedidoFijoModal from '../components/modals/PedidoFijoModal'
 
 const EMPTY_FORM = {
   nombre: '', telefono: '', tipo: 'particular',
@@ -31,6 +33,25 @@ export default function ClientesPage() {
   const [historialCli, setHistorialCli] = useState(null)
   const [pedidosCli, setPedidosCli] = useState([])
   const [loadingHist, setLoadingHist] = useState(false)
+  const [cuentaCli, setCuentaCli] = useState(null)
+  const [fijoCli, setFijoCli] = useState(null)
+  const [deudas, setDeudas] = useState({})   // { cliente_id: { total, n } }
+  const [fijos, setFijos] = useState({})     // { cliente_id: pedido fijo }
+
+  const cargarResumen = useCallback(async () => {
+    const [d, f] = await Promise.all([
+      supabase.from('comandas').select('cliente_id,total').eq('estado', 'a_cuenta'),
+      supabase.from('pedidos_fijos').select('cliente_id,dias,activo'),
+    ])
+    const m = {}
+    for (const c of d.data || []) { (m[c.cliente_id] ||= { total: 0, n: 0 }); m[c.cliente_id].total += Number(c.total || 0); m[c.cliente_id].n++ }
+    setDeudas(m)
+    setFijos(Object.fromEntries((f.data || []).map(x => [x.cliente_id, x])))
+  }, [])
+  useEffect(() => { cargarResumen() }, [cargarResumen])
+  const totalDeuda = Object.values(deudas).reduce((s, x) => s + x.total, 0)
+  const nDeudores = Object.keys(deudas).length
+  const LETRA_DIA = { 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S', 7: 'D' }
 
   async function cargarHistorial(cli) {
     setHistorialCli(cli)
@@ -109,12 +130,21 @@ export default function ClientesPage() {
         action={isAdmin && <Btn onClick={openNew}>+ Añadir cliente</Btn>}
       />
 
+      {isAdmin && totalDeuda > 0 && (
+        <Card style={{ borderLeft: '4px solid var(--err)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <span>💶 <b>Pendiente de cobro:</b> {nDeudores} cliente(s)</span>
+            <b style={{ color: 'var(--err)', fontSize: 20 }}>{fmt(totalDeuda)}</b>
+          </div>
+        </Card>
+      )}
+
       <Card style={{ position: 'relative' }}>
         <LockOverlay visible={!isAdmin} />
         {loading ? <Loading /> : clientes.length === 0 ? (
           <Empty icon="🙋" text="No hay clientes. ¡Añade el primero!" />
         ) : (
-          <Table headers={['Nombre', 'Teléfono', 'Tipo', 'Precios esp.', 'Acciones']}>
+          <Table headers={['Nombre', 'Teléfono', 'Pendiente de pago', 'Pedido fijo', 'Acciones']}>
             {clientes.map(c => {
               const npe = Object.keys(c.precios_especiales || {}).length
               return (
@@ -124,17 +154,23 @@ export default function ClientesPage() {
                     {c.notas && <><br /><small style={{ color: 'var(--txt3)' }}>{c.notas}</small></>}
                   </td>
                   <td style={{ color: 'var(--txt2)' }}>{c.telefono || '—'}</td>
-                  <td><Tag color="gray">{c.tipo}</Tag></td>
                   <td>
-                    {npe > 0
-                      ? <Tag color="purple">💡 {npe} especiales</Tag>
-                      : <span style={{ color: 'var(--txt3)', fontSize: 11 }}>Precio base</span>
-                    }
+                    {deudas[c.id]
+                      ? <button onClick={() => setCuentaCli(c)} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer' }} title="Ver y cobrar"><Tag color="red">{fmt(deudas[c.id].total)} · {deudas[c.id].n}</Tag></button>
+                      : <span style={{ color: 'var(--txt3)', fontSize: 11 }}>—</span>}
+                    {npe > 0 && <div style={{ marginTop: 3 }}><Tag color="purple">💡 {npe} precios esp.</Tag></div>}
+                  </td>
+                  <td>
+                    {fijos[c.id]?.activo && fijos[c.id].dias?.length
+                      ? <Tag color="green">🔁 {fijos[c.id].dias.map(d => LETRA_DIA[d]).join(' ')}</Tag>
+                      : <span style={{ color: 'var(--txt3)', fontSize: 11 }}>—</span>}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {isAdmin && <Btn variant="ghost" size="sm" onClick={() => openEdit(c)}>✏️</Btn>}
                       <Btn variant="info" size="sm" onClick={() => setAlbaranCli(c)}>📄 Albarán</Btn>
+                      <Btn variant={deudas[c.id] ? 'danger' : 'ghost'} size="sm" onClick={() => setCuentaCli(c)}>💶 Cuenta</Btn>
+                      <Btn variant="ghost" size="sm" onClick={() => setFijoCli(c)}>🔁 Pedido fijo</Btn>
                       <Btn variant="ghost" size="sm" onClick={() => cargarHistorial(c)}>📋 Historial</Btn>
                       {isAdmin && <Btn variant="danger" size="sm" onClick={() => handleDelete(c.id, c.nombre)}>🗑</Btn>}
                     </div>
@@ -285,6 +321,9 @@ export default function ClientesPage() {
           </div>
         </div>
       )}
+
+      {cuentaCli && <CuentaClienteModal cliente={cuentaCli} onClose={() => setCuentaCli(null)} onCambio={cargarResumen} />}
+      {fijoCli && <PedidoFijoModal cliente={fijoCli} productos={productos} onClose={() => setFijoCli(null)} onCambio={cargarResumen} />}
 
       {albaranCli && (
         <AlbaranModal

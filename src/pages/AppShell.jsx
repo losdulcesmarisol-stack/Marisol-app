@@ -12,7 +12,12 @@ export default function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
   const [pendientes, setPendientes] = useState(0)
+  const [masAbierto, setMasAbierto] = useState(false)
   const dp = getDiaPanadero()
+
+  // Crea las comandas de los pedidos fijos que toquen (también lo hace el servidor cada hora)
+  useEffect(() => { supabase.rpc('generar_pedidos_fijos').then(({ data }) => { if (data > 0) loadPendientes() }) }, [])
+  useEffect(() => { setMasAbierto(false) }, [location.pathname])
 
   useEffect(() => {
     loadPendientes()
@@ -45,6 +50,12 @@ export default function AppShell() {
     { to: '/appcc', icon: '✅', label: 'APPCC' },
     ...(isAdmin ? [{ to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
   ]
+
+  // Móvil: 4 accesos principales abajo y el resto en «Más»
+  const PRINCIPALES = ['/', '/ventas', '/comandas', '/produccion']
+  const abajo = navItems.filter(i => PRINCIPALES.includes(i.to))
+  const enMas = navItems.filter(i => !PRINCIPALES.includes(i.to))
+  const masActivo = enMas.some(i => location.pathname.startsWith(i.to))
 
   function isActive(item) {
     if (item.end) return location.pathname === item.to
@@ -81,14 +92,33 @@ export default function AppShell() {
         <Outlet context={{ refreshPendientes: loadPendientes }} />
       </main>
 
+      {masAbierto && (
+        <div className={styles.masFondo} onClick={() => setMasAbierto(false)}>
+          <div className={styles.masHoja} onClick={e => e.stopPropagation()} role="dialog" aria-label="Más secciones">
+            <div className={styles.masAsa} />
+            <div className={styles.masGrid}>
+              {enMas.map(({ to, icon, label }) => (
+                <button key={to} className={`${styles.masBtn} ${location.pathname.startsWith(to) ? styles.masOn : ''}`} onClick={() => navigate(to)}>
+                  <span className={styles.masIcon}>{icon}</span><span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className={styles.bottomNav}>
-        {navItems.map(({ to, icon, label, end, badge }) => (
+        {abajo.map(({ to, icon, label, end, badge }) => (
           <button key={to} className={`${styles.bottomBtn} ${isActive({ to, end }) ? styles.on : ''}`} onClick={() => navigate(to)}>
             <span className={styles.bottomIcon}>{icon}</span>
             <span className={styles.bottomLabel}>{label}</span>
             {badge > 0 && <span className={styles.bottomBadge}>{badge}</span>}
           </button>
         ))}
+        <button className={`${styles.bottomBtn} ${masActivo || masAbierto ? styles.on : ''}`} onClick={() => setMasAbierto(v => !v)} aria-expanded={masAbierto}>
+          <span className={styles.bottomIcon}>☰</span>
+          <span className={styles.bottomLabel}>Más</span>
+        </button>
       </nav>
     </div>
   )

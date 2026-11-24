@@ -24,6 +24,14 @@
 .bottomIcon { display: none; }
 .bottomLabel { display: none; }
 .bottomBadge { display: none; }
+.masFondo { position: fixed; inset: 0; background: rgba(31,28,66,.45); z-index: 190; display: flex; align-items: flex-end; }
+.masHoja { width: 100%; background: var(--sur); border-radius: 18px 18px 0 0; padding: 8px 14px calc(78px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0,0,0,.25); animation: subir .18s ease; }
+.masAsa { width: 42px; height: 5px; border-radius: 3px; background: var(--bor2); margin: 4px auto 12px; }
+.masGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.masBtn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px; border-radius: 14px; border: 1.5px solid var(--bor); background: var(--sur2); color: var(--txt); font-weight: 600; font-size: 13px; }
+.masOn { border-color: var(--gold); background: rgba(209,165,62,.14); color: var(--pur); }
+.masIcon { font-size: 26px; line-height: 1; }
+@keyframes subir { from { transform: translateY(40px); opacity: .5 } to { transform: none; opacity: 1 } }
 
 @media (max-width: 700px) {
   .nav { display: none; }
@@ -36,6 +44,6 @@
   .bottomBtn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 2px 10px; color: rgba(255,255,255,.65); font-family: var(--sans); font-weight: 500; gap: 3px; position: relative; border: none; background: transparent; cursor: pointer; transition: all .2s; min-width: 0; text-decoration: none; }
   .bottomBtn.on { color: var(--goldl); background: rgba(209,165,62,.14); }
   .bottomIcon { display: block; font-size: 20px; line-height: 1; }
-  .bottomLabel { display: block; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52px; }
+  .bottomLabel { display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
   .bottomBadge { display: flex; position: absolute; top: 5px; right: calc(50% - 18px); background: #d43a22; color: #fff; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; align-items: center; justify-content: center; font-weight: 700; }
 }

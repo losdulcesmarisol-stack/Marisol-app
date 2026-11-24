@@ -52,6 +52,24 @@ export default function VentasPage() {
     }))
   }
 
+  // «Lo de siempre»: carga en el ticket el último pedido del cliente, con sus precios de hoy
+  async function repetirUltimo() {
+    if (!cliId) return
+    const { data, error } = await supabase.from('comandas').select('items,fecha_entrega').eq('cliente_id', cliId).order('created_at', { ascending: false }).limit(1).maybeSingle()
+    if (error) { toast.error('Error: ' + error.message); return }
+    if (!data) { toast('Este cliente todavía no tiene pedidos'); return }
+    const cli = clientes.find(c => c.id === cliId)
+    const items = (data.items || []).filter(i => i.qty > 0).map(i => {
+      const prod = productos.find(p => p.id === i.prodId || p.nombre === i.nombre)
+      if (!prod) return null
+      const pe = cli?.precios_especiales?.[prod.id]
+      return { prodId: prod.id, nombre: prod.nombre, icono: prod.icono || getEmoji(prod.categoria), qty: i.qty, precio: (pe && pe > 0) ? pe : prod.precio }
+    }).filter(Boolean)
+    if (!items.length) { toast('Los productos de su último pedido ya no están en el catálogo'); return }
+    setTicket(items)
+    toast.success('Cargado su último pedido. Cambia lo que haga falta.')
+  }
+
   function seleccionar(prod) {
     if (selProd?.id === prod.id) { setSelProd(null); setCantInput(''); return }
     const enTicket = ticket.find(i => i.prodId === prod.id)
@@ -122,6 +140,7 @@ export default function VentasPage() {
           <option value="">Venta directa</option>
           {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre} ({c.tipo})</option>)}
         </select>
+        {cliId && <Btn variant="gold" size="sm" onClick={repetirUltimo} style={{ marginLeft: 8 }}>↺ Lo de siempre</Btn>}
       </div>
       <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 4, marginBottom: 10, scrollbarWidth: 'none' }}>
         {['todas', ...categoriasDisponibles].map(c => (

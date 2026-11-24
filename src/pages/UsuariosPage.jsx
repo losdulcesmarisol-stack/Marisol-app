@@ -12,7 +12,7 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(false)
   const [editId, setEditId] = useState(null)
-  const [form, setForm] = useState({ nombre: '', pin: '', rol: 'empleado' })
+  const [form, setForm] = useState({ nombre: '', pin: '', rol: 'empleado', inicio: '/' })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
 
@@ -20,13 +20,13 @@ export default function UsuariosPage() {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase.from('usuarios').select('id,nombre,rol,activo,created_at').order('nombre')
+    const { data } = await supabase.from('usuarios').select('id,nombre,rol,activo,created_at,inicio').order('nombre')
     setUsuarios(data || [])
     setLoading(false)
   }
 
-  function openNew() { setForm({ nombre:'',pin:'',rol:'empleado' }); setEditId(null); setErrors({}); setModal(true) }
-  function openEdit(u) { setForm({ nombre:u.nombre,pin:'',rol:u.rol }); setEditId(u.id); setErrors({}); setModal(true) }
+  function openNew() { setForm({ nombre:'',pin:'',rol:'empleado',inicio:'/' }); setEditId(null); setErrors({}); setModal(true) }
+  function openEdit(u) { setForm({ nombre:u.nombre,pin:'',rol:u.rol,inicio:u.inicio||'/' }); setEditId(u.id); setErrors({}); setModal(true) }
 
   function validate() {
     const errs = {}
@@ -41,7 +41,7 @@ export default function UsuariosPage() {
     if (!validate()) return
     setSaving(true)
     try {
-      const datos = { nombre: form.nombre.trim(), rol: form.rol }
+      const datos = { nombre: form.nombre.trim(), rol: form.rol, inicio: form.inicio || '/' }
       if (form.pin) datos.pin = form.pin
       const { error } = editId
         ? await supabase.from('usuarios').update(datos).eq('id', editId)
@@ -111,6 +111,11 @@ export default function UsuariosPage() {
           <select value={form.rol} onChange={e=>setForm(f=>({...f,rol:e.target.value}))}>
             <option value="empleado">Empleado — solo ventas y comandas</option>
             <option value="admin">Admin — acceso completo</option>
+          </select>
+        </FormGroup>
+        <FormGroup label="Pantalla al entrar">
+          <select value={form.inicio} onChange={e=>setForm(f=>({...f,inicio:e.target.value}))}>
+            {[['/','📊 Inicio'],['/ventas','💰 Ventas'],['/comandas','📋 Comandas'],['/produccion','🏭 Producción'],['/appcc','✅ APPCC']].map(([v,t])=><option key={v} value={v}>{t}</option>)}
           </select>
         </FormGroup>
         <div style={{ fontSize:11,color:'var(--txt3)',marginTop:8,padding:'8px',background:'var(--sur2)',borderRadius:'var(--r)' }}>
