@@ -78,7 +78,7 @@ export default function AppShell() {
     { to: '/comandas', icon: '📋', label: 'Comandas', badge: pendientes },
     { to: '/produccion', icon: '🏭', label: 'Produccion' },
     { to: '/proveedores', icon: '🚚', label: 'Proveedores' },
-    ...(isAdmin ? [{ to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
+    ...(isAdmin ? [{ to: '/informes', icon: '📈', label: 'Informes' }, { to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
   ]
 
   // Móvil: 4 accesos principales abajo y el resto en «Más»

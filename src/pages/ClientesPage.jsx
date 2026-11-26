@@ -12,6 +12,7 @@ import {
 import AlbaranModal from '../components/modals/AlbaranModal'
 import CuentaClienteModal from '../components/modals/CuentaClienteModal'
 import PedidoFijoModal from '../components/modals/PedidoFijoModal'
+import ResumenMesModal from '../components/modals/ResumenMesModal'
 
 const EMPTY_FORM = {
   nombre: '', telefono: '', tipo: 'particular',
@@ -34,6 +35,7 @@ export default function ClientesPage() {
   const [pedidosCli, setPedidosCli] = useState([])
   const [loadingHist, setLoadingHist] = useState(false)
   const [cuentaCli, setCuentaCli] = useState(null)
+  const [resumenCli, setResumenCli] = useState(null)
   const [fijoCli, setFijoCli] = useState(null)
   const [deudas, setDeudas] = useState({})   // { cliente_id: { total, n } }
   const [fijos, setFijos] = useState({})     // { cliente_id: pedido fijo }
@@ -170,6 +172,7 @@ export default function ClientesPage() {
                       <Btn variant="info" size="sm" onClick={() => setAlbaranCli(c)}>📄 Albarán</Btn>
                       <Btn variant={deudas[c.id] ? 'danger' : 'ghost'} size="sm" onClick={() => setCuentaCli(c)}>💶 Cuenta</Btn>
                       <Btn variant="ghost" size="sm" onClick={() => setFijoCli(c)}>🔁 Pedido fijo</Btn>
+                      <Btn variant="ghost" size="sm" onClick={() => setResumenCli(c)}>🗓️ Resumen mes</Btn>
                       <Btn variant="ghost" size="sm" onClick={() => cargarHistorial(c)}>📋 Historial</Btn>
                       {isAdmin && <Btn variant="danger" size="sm" onClick={() => handleDelete(c.id, c.nombre)}>🗑</Btn>}
                     </div>
@@ -321,6 +324,7 @@ export default function ClientesPage() {
         </div>
       )}
 
+      {resumenCli && <ResumenMesModal cliente={resumenCli} onClose={() => setResumenCli(null)} />}
       {cuentaCli && <CuentaClienteModal cliente={cuentaCli} onClose={() => setCuentaCli(null)} onCambio={cargarResumen} />}
       {fijoCli && <PedidoFijoModal cliente={fijoCli} productos={productos} onClose={() => setFijoCli(null)} onCambio={cargarResumen} />}
 
