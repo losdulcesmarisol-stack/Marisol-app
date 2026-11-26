@@ -79,7 +79,7 @@ export default function AppShell() {
     { to: '/produccion', icon: '🏭', label: 'Produccion' },
     { to: '/proveedores', icon: '🚚', label: 'Proveedores' },
     { to: '/appcc', icon: '✅', label: 'APPCC' },
-    ...(isAdmin ? [{ to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
+    ...(isAdmin ? [{ to: '/informes', icon: '📈', label: 'Informes' }, { to: '/usuarios', icon: '⚙️', label: 'Usuarios' }] : []),
   ]
 
   // Móvil: 4 accesos principales abajo y el resto en «Más»
