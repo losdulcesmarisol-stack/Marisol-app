@@ -16,7 +16,7 @@ function mesesRecientes() {
   const [y, m] = todayStr().split('-').map(Number)
   return Array.from({ length: 12 }, (_, i) => {
     const d = new Date(y, m - 1 - i, 1)
-    return { valor: `${d.getFullYear()}-${p2(d.getMonth() + 1)}`, nombre: d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) }
+    return { valor: `${d.getFullYear()}-${p2(d.getMonth() + 1)}`, nombre: d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).replace(/^./, c => c.toUpperCase()) }
   })
 }
 
@@ -66,7 +66,7 @@ export default function ResumenMesModal({ cliente, onClose }) {
       <div class="head"><div><div class="marca">Productos MariSol</div>
         <div class="peq">NIF: 07542369W · Calle María Cristina, 12 · 16610 Casas de Fernando Alonso · Cuenca</div>
         <div class="peq">Tel: 665 284 126</div></div>
-        <div><h1>RESUMEN DEL MES</h1><div class="peq" style="text-align:right;text-transform:capitalize">${esc(nombreMes)}</div></div></div>
+        <div><h1>RESUMEN DEL MES</h1><div class="peq" style="text-align:right">${esc(nombreMes)}</div></div></div>
       <div class="cli"><b>${esc(cliente.nombre)}</b>${cliente.nif ? `<div class="peq">NIF: ${esc(cliente.nif)}</div>` : ''}${cliente.direccion ? `<div class="peq">${esc(cliente.direccion)}</div>` : ''}</div>
       <table><thead><tr><th>Entrega</th><th>Productos</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table>
       <div class="tot">Total servido: ${esc(fmt(total))}<br>Pagado: ${esc(fmt(pagado))}<br><b>Pendiente de pago: ${esc(fmt(debe))}</b></div>
@@ -77,7 +77,7 @@ export default function ResumenMesModal({ cliente, onClose }) {
 
   return (
     <Modal open onClose={onClose} title={`📄 Resumen del mes · ${cliente.nombre}`} wide>
-      <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Mes" style={{ maxWidth: 260, textTransform: 'capitalize', marginBottom: 12 }}>
+      <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Mes" style={{ maxWidth: 260, marginBottom: 12 }}>
         {meses.map(x => <option key={x.valor} value={x.valor}>{x.nombre}</option>)}
       </select>
       {!lineas ? <Loading /> : !lineas.length ? <p style={{ color: 'var(--txt3)', textAlign: 'center', padding: 20 }}>No tiene pedidos este mes.</p> : (<>
