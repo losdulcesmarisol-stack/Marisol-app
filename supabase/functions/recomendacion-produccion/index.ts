@@ -1,6 +1,6 @@
 // Recomendación de producción para el próximo día de reparto.
-// 1) Siempre: cálculo con los datos reales (encargos ya apuntados + lo que se suele
-//    vender en mostrador ese día de la semana + lo que se hizo y sobró esos días).
+// 1) Siempre: cálculo con los datos reales (encargos ya apuntados, lo servido ese día de
+//    la semana según la app, y lo que se horneó y sobró esos días).
 // 2) Si el servidor tiene la clave ANTHROPIC_API_KEY: un consejo escrito por Claude.
 // Todas las consultas van con el usuario que llama, así que las reglas de seguridad
 // (solo usuarios activos) se aplican igual que en la app. La clave nunca sale del servidor.
@@ -41,14 +41,15 @@ Deno.serve(async (req) => {
   const objetivo = hora >= 10 ? sumarDias(hoy, 1) : hoy;
   const mismosDias = [1, 2, 3, 4].map((s) => sumarDias(objetivo, -7 * s)); // mismo día de la semana, 4 semanas
 
-  const [prods, encargos, mostrador, produccion, historial] = await Promise.all([
+  const [prods, encargos, servidoVentas, servidoComandas, produccion, historial] = await Promise.all([
     sb.from("productos").select("id, nombre, icono").eq("activo", true),
     sb.from("comandas").select("items").eq("fecha_entrega", objetivo).eq("estado", "pendiente"),
-    sb.from("ventas").select("fecha_entrega, items").is("cliente_id", null).in("fecha_entrega", mismosDias),
+    sb.from("ventas").select("fecha_entrega, items").in("fecha_entrega", mismosDias),
+    sb.from("comandas").select("fecha_entrega, items").in("estado", ["pendiente", "a_cuenta"]).in("fecha_entrega", mismosDias),
     sb.from("produccion_diaria").select("fecha, condicion, productos").in("fecha", mismosDias),
     sb.from("produccion_diaria").select("fecha, condicion, productos").gte("fecha", sumarDias(hoy, -35)).order("fecha"),
   ]);
-  const err = [prods, encargos, mostrador, produccion, historial].find((r) => r.error)?.error;
+  const err = [prods, encargos, servidoVentas, servidoComandas, produccion, historial].find((r) => r.error)?.error;
   if (err) return json({ error: err.message }, 500);
 
   type Fila = { id: string; nombre: string; icono: string; encargos: number; mostrador: number; hecho: number; sobrante: number; recomendado: number };
@@ -59,8 +60,10 @@ Deno.serve(async (req) => {
   };
   for (const p of prods.data!) fila(p.id, p.nombre, p.icono ?? "");
   for (const c of encargos.data!) for (const i of c.items ?? []) if (filas.has(i.prodId)) filas.get(i.prodId)!.encargos += num(i.qty);
-  const diasMostrador = new Set(mostrador.data!.map((v) => v.fecha_entrega)).size || 1;
-  for (const v of mostrador.data!) for (const i of v.items ?? []) if (filas.has(i.prodId)) filas.get(i.prodId)!.mostrador += num(i.qty) / diasMostrador;
+  // Lo servido cada uno de esos días: ventas (mostrador y comandas ya cobradas) + comandas aún sin cobrar
+  const servido = [...servidoVentas.data!, ...servidoComandas.data!];
+  const diasServidos = new Set(servido.map((v) => v.fecha_entrega)).size || 1;
+  for (const v of servido) for (const i of v.items ?? []) if (filas.has(i.prodId)) filas.get(i.prodId)!.mostrador += num(i.qty) / diasServidos;
   const diasProd = produccion.data!.length || 1;
   for (const d of produccion.data!) for (const i of d.productos ?? []) if (filas.has(i.prodId)) {
     const f = filas.get(i.prodId)!; f.hecho += num(i.cocidas) / diasProd; f.sobrante += num(i.mermas) / diasProd;
@@ -70,11 +73,13 @@ Deno.serve(async (req) => {
     mostrador: Math.round(f.mostrador * 10) / 10,
     hecho: Math.round(f.hecho * 10) / 10,
     sobrante: Math.round(f.sobrante * 10) / 10,
-    recomendado: Math.ceil(f.encargos + f.mostrador),
+    // Lo mayor de: lo que se horneó esos días menos lo que sobró (lo que de verdad salió),
+    // lo servido según la app (la app no recoge todo el mostrador) y los encargos ya apuntados.
+    recomendado: Math.ceil(Math.max(f.encargos, f.mostrador, f.hecho - f.sobrante)),
   })).filter((f) => f.encargos || f.mostrador || f.hecho).sort((a, b) => b.recomendado - a.recomendado);
 
   const dia = DIAS[new Date(objetivo + "T12:00:00Z").getUTCDay()];
-  const respuesta: Record<string, unknown> = { objetivo, dia, semanas: mismosDias.length, filas: lista, consejo: null, consejoMotivo: null };
+  const respuesta: Record<string, unknown> = { objetivo, dia, semanas: diasServidos, filas: lista, consejo: null, consejoMotivo: null };
 
   const clave = Deno.env.get("ANTHROPIC_API_KEY");
   if (!clave) { respuesta.consejoMotivo = "sin_clave"; return json(respuesta); }
@@ -84,7 +89,7 @@ Deno.serve(async (req) => {
     const datos = {
       dia_de_reparto: `${dia} ${objetivo}`,
       condiciones_previstas: condicion || "no indicadas",
-      calculo_por_producto: lista.map(({ nombre, encargos, mostrador, hecho, sobrante, recomendado }) => ({ nombre, encargos_ya_apuntados: encargos, mostrador_medio_este_dia: mostrador, horneado_medio_este_dia: hecho, sobrante_medio_este_dia: sobrante, recomendado_calculado: recomendado })),
+      calculo_por_producto: lista.map(({ nombre, encargos, mostrador, hecho, sobrante, recomendado }) => ({ nombre, encargos_ya_apuntados: encargos, servido_medio_segun_app: mostrador, horneado_medio_este_dia: hecho, sobrante_medio_este_dia: sobrante, recomendado_calculado: recomendado })),
       produccion_ultimas_5_semanas: historial.data!.map((d) => ({ fecha: d.fecha, condicion: d.condicion, productos: (d.productos ?? []).filter((p: Record<string, unknown>) => num(p.cocidas) || num(p.mermas)).map((p: Record<string, unknown>) => ({ nombre: p.nombre, cocidas: num(p.cocidas), mermas: num(p.mermas) })) })),
     };
     const r = await client.beta.messages.create({
@@ -93,7 +98,7 @@ Deno.serve(async (req) => {
       output_config: { effort: "low" },
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
-      system: "Eres el asesor de producción de Productos MariSol, una panadería artesana de un pueblo de Cuenca. Hablas con la dueña en español de España, sencillo y directo, sin tecnicismos ni tablas. Te dan un cálculo hecho con sus datos reales. Tu trabajo es revisarlo con sentido común: ajusta solo los productos donde las condiciones previstas, la tendencia reciente o los sobrantes lo justifiquen, y di por qué en pocas palabras. No inventes datos que no estén. Responde con como mucho 8 frases cortas o viñetas.",
+      system: "Eres el asesor de producción de Productos MariSol, una panadería artesana de un pueblo de Cuenca. Hablas con la dueña en español de España, sencillo y directo, sin tecnicismos ni tablas. Te dan un cálculo hecho con sus datos reales: lo recomendado es lo mayor entre: lo que se horneó de media ese día de la semana menos lo que sobró, lo servido según la app y los encargos ya apuntados. Ojo: la app no recoge todas las ventas de mostrador, así que «servido» suele ser menor que lo que se vende de verdad. Los encargos pueden seguir entrando hasta la noche. Tu trabajo es revisarlo con sentido común: ajusta solo los productos donde las condiciones previstas, la tendencia reciente o los sobrantes lo justifiquen, y di por qué en pocas palabras. No inventes datos que no estén. Responde con como mucho 8 frases cortas o viñetas.",
       messages: [{ role: "user", content: `Datos para la producción del próximo reparto:\n${JSON.stringify(datos)}` }],
     } as never) as unknown as { stop_reason: string; content: { type: string; text?: string }[] };
     if (r.stop_reason === "refusal") respuesta.consejoMotivo = "rechazo";

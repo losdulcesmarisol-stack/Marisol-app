@@ -10,6 +10,7 @@ import ComandasPage from './pages/ComandasPage'
 import ProveedoresPage from './pages/ProveedoresPage'
 import ComparadorPage from './pages/ComparadorPage'
 import InformesPage from './pages/InformesPage'
+import SeguridadPage from './pages/SeguridadPage'
 import UsuariosPage from './pages/UsuariosPage'
 import ProduccionPage from './pages/ProduccionPage'
 import AppccPage from './pages/appcc/AppccPage'
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="produccion" element={<ProduccionPage />} />
         <Route path="appcc" element={<AppccPage />} />
         <Route path="informes" element={<AdminRoute><InformesPage /></AdminRoute>} />
+        <Route path="seguridad" element={<AdminRoute><SeguridadPage /></AdminRoute>} />
         <Route path="usuarios" element={<AdminRoute><UsuariosPage /></AdminRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

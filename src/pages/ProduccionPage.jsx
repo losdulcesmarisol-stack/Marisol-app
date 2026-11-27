@@ -412,12 +412,12 @@ export default function ProduccionPage() {
           {recomendacion && (
             <div style={{ marginTop:16 }}>
               <p style={{ fontSize:13, color:'var(--txt2)', marginBottom:8 }}>
-                Para el <b>{recomendacion.dia} {new Date(recomendacion.objetivo + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'long' })}</b>: encargos ya apuntados + lo que se vende de media en mostrador los últimos {recomendacion.semanas} {recomendacion.dia}s.
+                Para el <b>{recomendacion.dia} {new Date(recomendacion.objetivo + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'long' })}</b>: lo que horneaste de media los últimos {recomendacion.dia}s menos lo que sobró, y nunca menos de lo servido en la app ni de los encargos ya apuntados.
               </p>
               {!recomendacion.filas.length ? <Empty text="Todavía no hay datos para ese día" /> : (
                 <div style={{ overflowX:'auto' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', minWidth:520 }}>
-                    <thead><tr>{['Producto','Encargos','Mostrador','Hiciste','Sobró','Hacer'].map(h => <th key={h} style={{ background:'var(--pur)', color:'#fff', padding:'7px 9px', textAlign: h==='Producto' ? 'left' : 'right', fontSize:10, letterSpacing:1, textTransform:'uppercase' }}>{h}</th>)}</tr></thead>
+                    <thead><tr>{['Producto','Ya apuntado','Servido en app','Hiciste','Sobró','Hacer'].map(h => <th key={h} style={{ background:'var(--pur)', color:'#fff', padding:'7px 9px', textAlign: h==='Producto' ? 'left' : 'right', fontSize:10, letterSpacing:1, textTransform:'uppercase' }}>{h}</th>)}</tr></thead>
                     <tbody>
                       {recomendacion.filas.map(f => (
                         <tr key={f.id}>
@@ -430,7 +430,7 @@ export default function ProduccionPage() {
                   </table>
                 </div>
               )}
-              <p style={{ fontSize:11, color:'var(--txt3)', marginTop:6 }}>«Hiciste» y «Sobró» son la media de lo que apuntaste en Producción esos mismos días.</p>
+              <p style={{ fontSize:11, color:'var(--txt3)', marginTop:6 }}>«Hiciste» y «Sobró» son la media de lo que apuntaste en Producción esos días. «Servido en app» es solo lo que está apuntado en ventas y comandas. Apunta siempre lo que sobra para que el cálculo afine.</p>
               {recomendacion.consejo ? (
                 <div style={{ marginTop:12, padding:'14px 16px', borderRadius:10, background:'var(--purbg)', border:'1px solid var(--bor2)', fontSize:13, color:'var(--txt)', lineHeight:1.7, whiteSpace:'pre-wrap' }}>
                   <b>🤖 Consejo de la IA</b>{'\n'}{recomendacion.consejo}

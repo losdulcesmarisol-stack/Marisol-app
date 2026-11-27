@@ -38,15 +38,13 @@ do $$
 declare t text;
 begin
   foreach t in array array['comandas','ventas','clientes','productos','proveedores','facturas','albaranes','usuarios','pedidos_fijos','productos_coste','produccion_diaria'] loop
-    execute format('drop trigger if exists historial on public.%I', t);
-    execute format('create trigger historial after insert or update or delete on public.%I for each row execute function public.apuntar_cambio()', t);
+    execute format('create or replace trigger historial after insert or update or delete on public.%I for each row execute function public.apuntar_cambio()', t);
   end loop;
 end $$;
 
 alter table public.historial_cambios enable row level security;
 revoke all on public.historial_cambios from anon, authenticated;
 grant select on public.historial_cambios to authenticated;
-drop policy if exists admin_ver_historial on public.historial_cambios;
 create policy admin_ver_historial on public.historial_cambios for select to authenticated using (public.es_admin());
 
 -- ── Copias de seguridad ───────────────────────────────────────────────────
@@ -107,7 +105,5 @@ grant execute on function public.descargar_copia(bigint) to authenticated;
 
 -- Copia cada noche a las 03:17 (hora UTC 02:17; en verano es la 04:17 de España) y limpieza
 -- del historial de más de 2 años el día 1 de cada mes
-select cron.unschedule('copia_seguridad') where exists (select 1 from cron.job where jobname = 'copia_seguridad');
 select cron.schedule('copia_seguridad', '17 2 * * *', $$select public.hacer_copia_seguridad('automática')$$);
-select cron.unschedule('historial_limpieza') where exists (select 1 from cron.job where jobname = 'historial_limpieza');
 select cron.schedule('historial_limpieza', '23 3 1 * *', $$delete from public.historial_cambios where cuando < now() - interval '2 years'$$);
