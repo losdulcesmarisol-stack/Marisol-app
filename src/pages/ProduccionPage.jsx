@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { todayStr } from '../lib/utils'
 import { Card, CardTitle, SectionHeader, Btn, Loading, Empty, Banner } from '../components/ui'
 import toast from 'react-hot-toast'
+import { llamarFuncion } from '../lib/funciones'
 
 const CONDICIONES_RAPIDAS = [
   { label: '☀️ Normal',       value: 'Día normal'       },
@@ -114,41 +115,10 @@ export default function ProduccionPage() {
   }
 
   async function pedirRecomendacion() {
-    if (!condMañana.trim()) return toast.error('Indica las condiciones de mañana')
     setCargandoIA(true)
     setRecomendacion(null)
-    try {
-      const contexto = historial.slice(0, 30).map(d => ({
-        fecha:     d.fecha,
-        condicion: d.condicion,
-        productos: (d.productos || []).map(p => ({
-          nombre:  p.nombre,
-          masa:    gMasa(p),
-          cocidas: gCocidas(p),
-          mermas:  gMermas(p)
-        }))
-      }))
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY || '',
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-opus-4-5', max_tokens: 700,
-          messages: [{ role: 'user', content:
-            `Eres el asesor de producción de Dulces Marisol, una panadería artesana.
-Analiza el historial y recomienda cuánto producir mañana (masa y cocidas por producto).
-Condición de mañana: "${condMañana}"
-Historial: ${JSON.stringify(contexto)}
-Responde en español, sé directo y práctico.` }]
-        })
-      })
-      const data = await res.json()
-      setRecomendacion(data.content?.[0]?.text || 'Sin respuesta')
-    } catch { toast.error('Error conectando con la IA') }
+    try { setRecomendacion(await llamarFuncion('recomendacion-produccion', { condicion: condMañana.trim() })) }
+    catch (e) { toast.error('No se pudo calcular: ' + e.message) }
     setCargandoIA(false)
   }
 
@@ -426,7 +396,7 @@ Responde en español, sé directo y práctico.` }]
       {tabActiva === 'ia' && (
         <Card>
           <CardTitle>🤖 Recomendación de producción</CardTitle>
-          <p style={{ fontSize:13, color:'var(--txt2)', marginBottom:12 }}>La IA analiza el historial y te dice cuánto producir mañana.</p>
+          <p style={{ fontSize:13, color:'var(--txt2)', marginBottom:12 }}>Calcula cuánto hacer con tus encargos y lo que sueles vender ese día. Las condiciones (lluvia, fiesta…) son opcionales y las tiene en cuenta la IA.</p>
           <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:12 }}>
             {CONDICIONES_RAPIDAS.map(c => (
               <button key={c.value} onClick={() => setCondMañana(condMañana === c.value ? '' : c.value)} style={btnCond(condMañana === c.value)}>{c.label}</button>
@@ -437,11 +407,39 @@ Responde en español, sé directo y práctico.` }]
             style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1px solid var(--bor)', background:'var(--bg2)', color:'var(--txt1)', fontSize:13, marginBottom:12 }}
           />
           <Btn onClick={pedirRecomendacion} disabled={cargandoIA} style={{ width:'100%' }}>
-            {cargandoIA ? '⏳ Consultando a la IA...' : '🤖 Obtener recomendación'}
+            {cargandoIA ? '⏳ Calculando…' : '🤖 ¿Cuánto hago?'}
           </Btn>
           {recomendacion && (
-            <div style={{ marginTop:16, padding:'14px 16px', borderRadius:10, background:'var(--purbg)', border:'1px solid var(--bor2)', fontSize:13, color:'var(--txt1)', lineHeight:1.7, whiteSpace:'pre-wrap' }}>
-              {recomendacion}
+            <div style={{ marginTop:16 }}>
+              <p style={{ fontSize:13, color:'var(--txt2)', marginBottom:8 }}>
+                Para el <b>{recomendacion.dia} {new Date(recomendacion.objetivo + 'T12:00:00').toLocaleDateString('es-ES', { day:'numeric', month:'long' })}</b>: encargos ya apuntados + lo que se vende de media en mostrador los últimos {recomendacion.semanas} {recomendacion.dia}s.
+              </p>
+              {!recomendacion.filas.length ? <Empty text="Todavía no hay datos para ese día" /> : (
+                <div style={{ overflowX:'auto' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse', minWidth:520 }}>
+                    <thead><tr>{['Producto','Encargos','Mostrador','Hiciste','Sobró','Hacer'].map(h => <th key={h} style={{ background:'var(--pur)', color:'#fff', padding:'7px 9px', textAlign: h==='Producto' ? 'left' : 'right', fontSize:10, letterSpacing:1, textTransform:'uppercase' }}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {recomendacion.filas.map(f => (
+                        <tr key={f.id}>
+                          <td style={{ padding:'7px 9px', borderBottom:'1px solid var(--bor)', fontSize:13 }}>{f.icono} {f.nombre}</td>
+                          {[f.encargos, f.mostrador, f.hecho, f.sobrante].map((v, k) => <td key={k} style={{ padding:'7px 9px', borderBottom:'1px solid var(--bor)', fontSize:13, textAlign:'right', color: v ? 'var(--txt)' : 'var(--txt3)' }}>{v || '—'}</td>)}
+                          <td style={{ padding:'7px 9px', borderBottom:'1px solid var(--bor)', fontSize:15, textAlign:'right', fontWeight:700, color:'var(--pur)' }}>{f.recomendado}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p style={{ fontSize:11, color:'var(--txt3)', marginTop:6 }}>«Hiciste» y «Sobró» son la media de lo que apuntaste en Producción esos mismos días.</p>
+              {recomendacion.consejo ? (
+                <div style={{ marginTop:12, padding:'14px 16px', borderRadius:10, background:'var(--purbg)', border:'1px solid var(--bor2)', fontSize:13, color:'var(--txt)', lineHeight:1.7, whiteSpace:'pre-wrap' }}>
+                  <b>🤖 Consejo de la IA</b>{'\n'}{recomendacion.consejo}
+                </div>
+              ) : recomendacion.consejoMotivo === 'sin_clave' ? (
+                <p style={{ fontSize:12, color:'var(--txt3)', marginTop:10 }}>El consejo escrito por la IA está sin activar (falta la clave en el servidor). El cálculo de arriba funciona igual.</p>
+              ) : recomendacion.consejoMotivo ? (
+                <p style={{ fontSize:12, color:'var(--wrn)', marginTop:10 }}>La IA no ha respondido esta vez. El cálculo de arriba es válido.</p>
+              ) : null}
             </div>
           )}
         </Card>

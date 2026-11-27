@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Btn, Modal, ModalFooter } from '../ui'
 import toast from 'react-hot-toast'
+import { llamarFuncion } from '../../lib/funciones'
 
-const VISION_KEY = 'AIzaSyA3zpAFy5OPaaZYC0cdI3xY7Xwpu4L5ojQ'
 
 function resizeImage(file, maxWidth = 1400) {
   return new Promise((resolve) => {
@@ -128,24 +128,8 @@ export default function LectorFactura({ onDatosExtraidos, onClose }) {
     setLeyendo(true)
     try {
       const base64 = await resizeImage(imagen)
-      const resp = await fetch(
-        `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requests: [{
-              image: { content: base64 },
-              features: [
-                { type: 'DOCUMENT_TEXT_DETECTION', maxResults: 1 }
-              ]
-            }]
-          })
-        }
-      )
-      const data = await resp.json()
-      if (data.error) { toast.error('Error: ' + data.error.message); setLeyendo(false); return }
-      const texto = data.responses?.[0]?.fullTextAnnotation?.text || ''
+      const data = await llamarFuncion('leer-factura', { imagen: base64 })
+      const texto = data?.texto || ''
       if (!texto) { toast.error('No se detectó texto. Mejora la iluminación.'); setLeyendo(false); return }
       setTextoRaw(texto)
       const extraido = extraerDatos(texto)
