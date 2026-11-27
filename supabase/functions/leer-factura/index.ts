@@ -9,6 +9,16 @@ const CORS = {
 };
 const json = (d: unknown, s = 200) => new Response(JSON.stringify(d), { status: s, headers: { ...CORS, "Content-Type": "application/json" } });
 
+// La clave: primero la de los secretos de Edge Functions; si no, la guardada cifrada desde la app
+async function claveServicio(nombre: string): Promise<string | null> {
+  const env = Deno.env.get(nombre);
+  if (env) return env;
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data, error } = await admin.rpc("leer_clave_servicio", { p_nombre: nombre });
+  if (error) { console.error("clave:", error.message); return null; }
+  return data || null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -19,8 +29,8 @@ Deno.serve(async (req) => {
   const { data: activo, error: eAct } = await sb.rpc("usuario_activo");
   if (eAct || !activo) return json({ error: "Usuario no autorizado" }, 403);
 
-  const clave = Deno.env.get("GOOGLE_VISION_KEY");
-  if (!clave) return json({ error: "El lector de facturas no tiene la clave de Google configurada en el servidor." }, 503);
+  const clave = await claveServicio("GOOGLE_VISION_KEY");
+  if (!clave) return json({ error: "Falta la clave de Google. Un administrador puede ponerla en Más → Historial → Claves." }, 503);
 
   let imagen = "";
   try { imagen = String((await req.json())?.imagen ?? ""); } catch { /* cuerpo no válido */ }

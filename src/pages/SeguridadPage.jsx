@@ -50,8 +50,8 @@ export default function SeguridadPage() {
   return (
     <div className="fade-in">
       <SectionHeader title="Historial y copias" subtitle="Quién ha cambiado qué, y copias de seguridad de todos los datos" />
-      <FilterTabs tabs={[{ value: 'historial', label: '🕘 Historial de cambios' }, { value: 'copias', label: '💾 Copias de seguridad' }]} active={tab} onChange={setTab} />
-      <div style={{ marginTop: 12 }}>{tab === 'historial' ? <Historial /> : <Copias />}</div>
+      <FilterTabs tabs={[{ value: 'historial', label: '🕘 Historial de cambios' }, { value: 'copias', label: '💾 Copias de seguridad' }, { value: 'claves', label: '🔑 Claves' }]} active={tab} onChange={setTab} />
+      <div style={{ marginTop: 12 }}>{tab === 'historial' ? <Historial /> : tab === 'copias' ? <Copias /> : <Claves />}</div>
     </div>
   )
 }
@@ -162,6 +162,64 @@ function Copias() {
           ))}
         </div>
       )}
+    </Card>
+  )
+}
+
+const CLAVES = [
+  { nombre: 'GOOGLE_VISION_KEY', titulo: 'Google Vision (lector de facturas)', ayuda: 'Se crea en console.cloud.google.com → APIs y servicios → Credenciales → Crear credenciales → Clave de API. Restríngela solo a «Cloud Vision API».' },
+  { nombre: 'ANTHROPIC_API_KEY', titulo: 'Anthropic (consejo de la IA en Producción, opcional)', ayuda: 'Se crea en console.anthropic.com → API Keys. Sin ella, el cálculo de «¿Cuánto hago?» funciona igual.' },
+]
+
+function Claves() {
+  const [estado, setEstado] = useState(null)
+  const [valores, setValores] = useState({})
+  const [ocupado, setOcupado] = useState(false)
+
+  const cargar = useCallback(async () => {
+    const { data, error } = await supabase.rpc('claves_servicio_estado')
+    if (error) { toast.error('Error: ' + error.message); setEstado({}); return }
+    setEstado(Object.fromEntries(data.map(d => [d.nombre, d])))
+  }, [])
+  useEffect(() => { cargar() }, [cargar])
+
+  async function guardar(nombre, valor) {
+    setOcupado(true)
+    const { error } = await supabase.rpc('guardar_clave_servicio', { p_nombre: nombre, p_valor: valor })
+    setOcupado(false)
+    if (error) return toast.error('Error: ' + error.message)
+    setValores(v => ({ ...v, [nombre]: '' }))
+    toast.success(valor ? 'Clave guardada' : 'Clave quitada')
+    cargar()
+  }
+
+  return (
+    <Card>
+      <CardTitle>Claves de servicios</CardTitle>
+      <p style={{ fontSize: 13, color: 'var(--txt2)', marginTop: -4 }}>
+        Se guardan cifradas en el servidor. Nadie puede volver a verlas desde la app (ni siquiera tú): solo se pueden cambiar o quitar.
+      </p>
+      {!estado ? <Loading /> : CLAVES.map(c => {
+        const e = estado[c.nombre]
+        return (
+          <div key={c.nombre} style={{ border: '1px solid var(--bor)', borderRadius: 'var(--r)', padding: 12, marginTop: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+              <b>{c.titulo}</b>
+              <span style={{ fontSize: 12, fontWeight: 700, color: e?.configurada ? 'var(--ok)' : 'var(--wrn)' }}>
+                {e?.configurada ? '✓ Puesta' + (e.actualizada ? ' el ' + fechaHora(e.actualizada) : '') : 'Sin poner'}
+              </span>
+            </div>
+            <p style={{ fontSize: 12, color: 'var(--txt3)', margin: '4px 0 8px' }}>{c.ayuda}</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input type="password" autoComplete="off" placeholder={e?.configurada ? 'Pega una clave nueva para cambiarla' : 'Pega aquí la clave'}
+                value={valores[c.nombre] || ''} onChange={ev => setValores(v => ({ ...v, [c.nombre]: ev.target.value }))}
+                aria-label={'Clave de ' + c.titulo} style={{ flex: 1, minWidth: 220 }} />
+              <Btn variant="gold" size="sm" disabled={ocupado || !(valores[c.nombre] || '').trim()} onClick={() => guardar(c.nombre, valores[c.nombre])}>Guardar</Btn>
+              {e?.configurada && <Btn variant="ghost" size="sm" disabled={ocupado} onClick={() => window.confirm('¿Quitar esta clave?') && guardar(c.nombre, '')}>Quitar</Btn>}
+            </div>
+          </div>
+        )
+      })}
     </Card>
   )
 }

@@ -23,6 +23,16 @@ const sumarDias = (f: string, n: number) => { const d = new Date(f + "T12:00:00Z
 const num = (v: unknown) => Number(String(v ?? "").replace(",", ".")) || 0;
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
+// La clave: primero la de los secretos de Edge Functions; si no, la guardada cifrada desde la app
+async function claveServicio(nombre: string): Promise<string | null> {
+  const env = Deno.env.get(nombre);
+  if (env) return env;
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data, error } = await admin.rpc("leer_clave_servicio", { p_nombre: nombre });
+  if (error) { console.error("clave:", error.message); return null; }
+  return data || null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -81,7 +91,7 @@ Deno.serve(async (req) => {
   const dia = DIAS[new Date(objetivo + "T12:00:00Z").getUTCDay()];
   const respuesta: Record<string, unknown> = { objetivo, dia, semanas: diasServidos, filas: lista, consejo: null, consejoMotivo: null };
 
-  const clave = Deno.env.get("ANTHROPIC_API_KEY");
+  const clave = await claveServicio("ANTHROPIC_API_KEY");
   if (!clave) { respuesta.consejoMotivo = "sin_clave"; return json(respuesta); }
 
   try {
